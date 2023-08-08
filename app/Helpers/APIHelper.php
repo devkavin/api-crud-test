@@ -89,6 +89,7 @@ class APIHelper
     }
 
     // REQUEST VALIDATION FOR CREATE AND UPDATE
+    // Taken and modified from: MFAISAA-BFF\app\Helpers\APIHelper.php
     public static function validateRequest($schema, $request, $type = 'insert')
     {
         // Get schema keys into a array
@@ -96,7 +97,6 @@ class APIHelper
 
         // If the request is not and create, $request will take passed data
         $input = $request;
-
         // Only get full request object when creating
         // Ignore when doing the update
         if ($type == 'insert') {
