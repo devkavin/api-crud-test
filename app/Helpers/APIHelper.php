@@ -35,7 +35,8 @@ class APIHelper
             "message"     => $message,
         ];
         if ($data != null || is_array($data)) {
-            // set date one by one for id, name, email, phone, etc (NOT a good practice, just to display timestamp in Y-m-d H:i:s format as requested)
+            // set date one by one for id, name, email, phone, etc 
+            // (NOT a good practice, just to display timestamp in Y-m-d H:i:s format as requested)
             // reason: makeAPIResponse() formats the response in UTC timezone.
             if (isset($data['id'])) {
                 $response['id'] = $data['id'];
@@ -52,12 +53,11 @@ class APIHelper
             if (isset($data['age'])) {
                 $response['age'] = $data['age'];
             }
+            // in Y-m-d H:i:s format
             if (isset($data['created_at'])) {
-                // in Y-m-d H:i:s format
                 $response['created_at'] = $data['created_at']->format('Y-m-d H:i:s');
             }
             if (isset($data['updated_at'])) {
-                // in Y-m-d H:i:s format
                 $response['updated_at'] = $data['updated_at']->format('Y-m-d H:i:s');
             }
         }
@@ -65,7 +65,6 @@ class APIHelper
         if ($data != null || is_array($data)) {
             $response["data"] = $data;
         }
-
         // return response
         return response()->json($response, $status_code);
     }
