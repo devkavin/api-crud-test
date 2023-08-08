@@ -35,6 +35,34 @@ class APIHelper
             "message"     => $message,
         ];
         if ($data != null || is_array($data)) {
+            // set date one by one for id, name, email, phone, etc 
+            // (NOT a good practice, just to display timestamp in Y-m-d H:i:s format as requested)
+            // reason: makeAPIResponse() formats the response in UTC timezone.
+            if (isset($data['id'])) {
+                $response['id'] = $data['id'];
+            }
+            if (isset($data['name'])) {
+                $response['name'] = $data['name'];
+            }
+            if (isset($data['email'])) {
+                $response['email'] = $data['email'];
+            }
+            if (isset($data['phone'])) {
+                $response['phone'] = $data['phone'];
+            }
+            if (isset($data['age'])) {
+                $response['age'] = $data['age'];
+            }
+            // in Y-m-d H:i:s format
+            if (isset($data['created_at'])) {
+                $response['created_at'] = $data['created_at']->format('Y-m-d H:i:s');
+            }
+            if (isset($data['updated_at'])) {
+                $response['updated_at'] = $data['updated_at']->format('Y-m-d H:i:s');
+            }
+        }
+        // proper response format
+        if ($data != null || is_array($data)) {
             $response["data"] = $data;
         }
         // return response
@@ -55,11 +83,13 @@ class APIHelper
         if ($changes != null || is_array($changes)) {
             $response["changes"] = $changes;
         }
+
         // make response
         return response()->json($response, $status_code);
     }
 
     // REQUEST VALIDATION FOR CREATE AND UPDATE
+    // Taken and modified from: MFAISAA-BFF\app\Helpers\APIHelper.php
     public static function validateRequest($schema, $request, $type = 'insert')
     {
         // Get schema keys into a array
@@ -67,7 +97,6 @@ class APIHelper
 
         // If the request is not and create, $request will take passed data
         $input = $request;
-
         // Only get full request object when creating
         // Ignore when doing the update
         if ($type == 'insert') {
