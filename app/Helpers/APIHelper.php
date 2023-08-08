@@ -55,7 +55,7 @@ class APIHelper
         if ($changes != null || is_array($changes)) {
             $response["changes"] = $changes;
         }
-        // make responce
+        // make response
         return response()->json($response, $status_code);
     }
 
