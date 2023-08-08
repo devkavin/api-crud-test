@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class APIHelper
 {
+    // Taken from: MFAISAA-BFF\app\Helpers\APIHelper.php
     const HTTP_CODE_SUCCESS          = 200;
     const HTTP_CODE_SERVER_ERROR     = 500;
     const HTTP_CODE_BAD_REQUEST      = 400;
