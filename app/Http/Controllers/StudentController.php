@@ -255,24 +255,7 @@ class StudentController extends Controller
         }
     }
 
-    // // to delete data
-    // public function destroy($id)
-    // {
-    //     $student = Student::find($id);
-    //     if ($student) {
-    //         $student->delete();
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Student data is successfully deleted'
-    //         ], 200);
-    //     } else {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'ID not found'
-    //             // 404 to show that the id is not found
-    //         ], 404);
-    //     }
-    // }
+
 
     // to search data
     public function search($name)
