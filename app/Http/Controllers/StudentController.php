@@ -106,7 +106,7 @@ class StudentController extends Controller
                 }
             }
             // save the new values
-            $student->fill($data);
+            $student->save($data);
 
             // to store the changes
             $changes = [];
