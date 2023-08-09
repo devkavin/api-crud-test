@@ -16,7 +16,9 @@ class StudentController extends Controller
 
     public function index()
     {
-        $students = Student::all();
+        // paginate means it limits the data to 10 per page
+        // it also has links to next and previous page
+        $students = Student::paginate(2);
         if ($students->isEmpty()) {
             return APIHelper::makeAPIResponse(false, "Sorry, students data is empty", null, APIHelper::HTTP_NO_DATA_FOUND);
         } else {
