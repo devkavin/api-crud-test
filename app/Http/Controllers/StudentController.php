@@ -105,8 +105,9 @@ class StudentController extends Controller
                     $oldValues[$key] = $student->{$key};
                 }
             }
+
             // save the new values
-            $student->save($data);
+            $student->update($data);
 
             // to store the changes
             $changes = [];
@@ -127,6 +128,7 @@ class StudentController extends Controller
             return APIHelper::makeAPIResponse(false, "Sorry, student data failed to update", null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
+
 
     // to delete data
     public function destroy($id)
