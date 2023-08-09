@@ -129,7 +129,6 @@ class StudentController extends Controller
         }
     }
 
-
     // to delete data
     public function destroy($id)
     {
