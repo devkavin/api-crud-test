@@ -35,6 +35,7 @@ class StudentController extends Controller
             // phone is char so it must be casted to string to store 0 in front
             'phone' => (string)$request->phone,
             'age' => (int)$request->age,
+            // stored in Y-m-d H:i:s format
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => null
         ]);
@@ -51,11 +52,8 @@ class StudentController extends Controller
         if ($validator['errors']) {
             return APIHelper::makeAPIResponse(false, $validator['error_messages'], null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
-
-
         if ($student) {
             return APIHelper::makeAPIResponse(true, "Student data is successfully added", $student, APIHelper::HTTP_CODE_SUCCESS);
-            // 201 is status code for created
         } else {
             return APIHelper::makeAPIResponse(false, "Sorry, student data failed to add", null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
@@ -95,7 +93,9 @@ class StudentController extends Controller
         $student = Student::find($id);
         if ($student) {
             $data = $request->only([
-                'name', 'email', 'phone', 'age', 'updated_at' => date('Y-m-d H:i:s')
+                'name', 'email', 'phone', 'age',
+                // stored in Y-m-d H:i:s format
+                'updated_at' => date('Y-m-d H:i:s')
             ]);
 
             // to store old value from database
