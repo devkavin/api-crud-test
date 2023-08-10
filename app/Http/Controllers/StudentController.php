@@ -30,17 +30,6 @@ class StudentController extends Controller
     // to store data
     public function store(Request $request)
     {
-        $student = Student::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            // phone is char so it must be casted to string to store 0 in front
-            'phone' => (string)$request->phone,
-            'age' => (int)$request->age,
-            // stored in Y-m-d H:i:s format
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => null
-        ]);
-
         // validation schema to validate request and return error messages
         $validation_schema = [
             'name' => 'required',
@@ -53,6 +42,18 @@ class StudentController extends Controller
         if ($validator['errors']) {
             return APIHelper::makeAPIResponse(false, $validator['error_messages'], null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
+
+        $student = Student::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            // phone is char so it must be casted to string to store 0 in front
+            'phone' => (string)$request->phone,
+            'age' => (int)$request->age,
+            // stored in Y-m-d H:i:s format
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => null
+        ]);
+
         if ($student) {
             return APIHelper::makeAPIResponse(true, "Student data is successfully added", $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
@@ -63,7 +64,6 @@ class StudentController extends Controller
     // get student by id
     public function show($id)
     {
-
         $student = Student::find($id);
         if ($student) {
             return APIHelper::makeAPIResponse(true, "Student data is successfully retrieved", $student, APIHelper::HTTP_CODE_SUCCESS);
@@ -90,7 +90,6 @@ class StudentController extends Controller
         if ($validator['errors']) {
             return APIHelper::makeAPIResponse(false, $validator['error_messages'], null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
-
         $student = Student::find($id);
         if ($student) {
             $data = $request->only([

@@ -16,10 +16,10 @@ class TeacherController extends Controller
     public function index()
     {
         $teachers = Teacher::paginate(2);
-        if ($teachers->isEmpty()) {
-            return APIHelper::makeAPIResponse(false, "Sorry, teachers data is empty", null, APIHelper::HTTP_NO_DATA_FOUND);
-        } else {
+        if ($teachers) {
             return APIHelper::makeAPIResponse(true, "Teachers data found", $teachers, APIHelper::HTTP_CODE_SUCCESS);
+        } else {
+            return APIHelper::makeAPIResponse(false, "Sorry, teachers data is empty", null, APIHelper::HTTP_NO_DATA_FOUND);
         }
     }
 }

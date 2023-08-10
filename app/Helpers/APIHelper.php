@@ -27,6 +27,12 @@ class APIHelper
      * @return \Illuminate\Http\JsonResponse
      */
 
+    public function getData($data)
+    {
+        $data = json_decode(json_encode($data), true);
+        return $data;
+    }
+
     // MAKE API RESPONSE
     public static function makeAPIResponse($status = true, $message = "Success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
     {
@@ -34,7 +40,6 @@ class APIHelper
             "success"     => $status,
             "status_code" => $status_code,
             "message"     => $message,
-            "students"    => $data,
         ];
         // proper response format
         if ($data != null || is_array($data)) {
@@ -88,5 +93,20 @@ class APIHelper
         }
 
         return ['errors' => false, 'data' => $input];
+    }
+
+    public function testAPICALL($status = true, $message = "Success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
+    {
+        $response = [
+            "success"     => $status,
+            "status_code" => $status_code,
+            "message"     => $message,
+        ];
+        // proper response format
+        if ($data != null || is_array($data)) {
+            // getData
+        }
+        // return response
+        return response()->json($response, $status_code);
     }
 }
