@@ -39,6 +39,7 @@ class APIHelper
             // set date one by one for id, name, email, phone, etc 
             // (NOT a good practice, just to display timestamp in Y-m-d H:i:s format as requested)
             // reason: makeAPIResponse() formats the response in UTC timezone.
+            // TODO
             if (isset($data['id'])) {
                 $response['id'] = $data['id'];
             }
@@ -53,6 +54,9 @@ class APIHelper
             }
             if (isset($data['age'])) {
                 $response['age'] = $data['age'];
+            }
+            if (isset($data['department'])) {
+                $response['department'] = $data['department'];
             }
             // in Y-m-d H:i:s format
             if (isset($data['created_at'])) {
@@ -93,7 +97,7 @@ class APIHelper
     // Taken and modified from: MFAISAA-BFF\app\Helpers\APIHelper.php
     public static function validateRequest($schema, $request, $type = 'insert')
     {
-        // Get schema keys into a array
+        // Get schema keys into a array (for validation)
         $schema_keys = array_keys($schema);
 
         // If the request is not and create, $request will take passed data
