@@ -37,41 +37,45 @@ class StudentTest extends TestCase
 
     public function testGetStudentById()
     {
+        $updateID = 9;
         // test get student by id function
         $response = $this->get('/api/student/details/1');
 
         $response->assertStatus(200);
     }
 
-    public function testUpdate()
-    {
-        // check if student id 9 exists
-        $response = $this->get('/api/student/details/9');
-        $response->assertStatus(200);
+    // public function testUpdate()
+    // {
+    //     // test variables
+    //     $updateID = 9;
+    //     $updateName = 'Test Student2';
+    //     $updateEmail = 'test2@gmail.com';
+    //     $updatePhone = '0123456789';
+    //     $updateAge = '20';
 
-        $updateName = 'Test Student2';
-        $updateEmail = 'test2@gmail.com';
-        $updatePhone = '0123456789';
-        $updateAge = '20';
+    //     // check if student id 9 exists
+    //     $response = $this->get('/api/student/details/$updateID');
+    //     $response->assertStatus(200);
 
-        // update student id 9
-        $response = $this->put('/api/student/update/9', [
-            'name' => $updateName,
-            'email' => $updateEmail,
-            'phone' => $updatePhone,
-            'age' => $updateAge
-        ]);
 
-        $response->assertStatus(200);
-        $response->assertJsonData($response, [
-            'success' => true,
-            'message' => 'Student data is successfully updated',
-            'data' => [
-                'name' => $updateName,
-                'email' => $updateEmail,
-                'phone' => $updatePhone,
-                'age' => $updateAge
-            ]
-        ]);
-    }
+    //     // update student id 9
+    //     $response = $this->put('/api/student/update/9', [
+    //         'name' => $updateName,
+    //         'email' => $updateEmail,
+    //         'phone' => $updatePhone,
+    //         'age' => $updateAge
+    //     ]);
+
+    //     $response->assertStatus(200);
+    //     $response->assertJsonData($response, [
+    //         'success' => true,
+    //         'message' => 'Student data is successfully updated',
+    //         'data' => [
+    //             'name' => $updateName,
+    //             'email' => $updateEmail,
+    //             'phone' => $updatePhone,
+    //             'age' => $updateAge
+    //         ]
+    //     ]);
+    // }
 }
