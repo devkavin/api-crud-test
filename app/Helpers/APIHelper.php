@@ -34,38 +34,8 @@ class APIHelper
             "success"     => $status,
             "status_code" => $status_code,
             "message"     => $message,
+            "students"    => $data,
         ];
-        if ($data != null || is_array($data)) {
-            // set date one by one for id, name, email, phone, etc 
-            // (NOT a good practice, just to display timestamp in Y-m-d H:i:s format as requested)
-            // reason: makeAPIResponse() formats the response in UTC timezone.
-            // TODO
-            if (isset($data['id'])) {
-                $response['id'] = $data['id'];
-            }
-            if (isset($data['name'])) {
-                $response['name'] = $data['name'];
-            }
-            if (isset($data['email'])) {
-                $response['email'] = $data['email'];
-            }
-            if (isset($data['phone'])) {
-                $response['phone'] = $data['phone'];
-            }
-            if (isset($data['age'])) {
-                $response['age'] = $data['age'];
-            }
-            if (isset($data['department'])) {
-                $response['department'] = $data['department'];
-            }
-            // in Y-m-d H:i:s format
-            if (isset($data['created_at'])) {
-                $response['created_at'] = $data['created_at']->format('Y-m-d H:i:s');
-            }
-            if (isset($data['updated_at'])) {
-                $response['updated_at'] = $data['updated_at']->format('Y-m-d H:i:s');
-            }
-        }
         // proper response format
         if ($data != null || is_array($data)) {
             $response["data"] = $data;
