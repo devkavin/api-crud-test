@@ -11,25 +11,34 @@ class StudentController extends Controller
     // test get function
     public function test()
     {
-        return APIHelper::makeAPIResponse(false, "This is a Text response", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+        return APIHelper::makeAPIResponse(false, "This is a Text response", null, APIHelper::HTTP_CODE_SUCCESS);
     }
 
     public function index()
     {
-        // paginate means it limits the data to 10 per page
+        // paginate means it limits the data to 2 per page (as specified within brackets)
         // it also has links to next and previous page
         // REF:https://laravel.com/docs/10.x/pagination#basic-usage
+        //TODO: make paginations dynamic
         $students = Student::paginate(2);
-        if ($students->isEmpty()) {
-            return APIHelper::makeAPIResponse(false, "Sorry, students data is empty", null, APIHelper::HTTP_NO_DATA_FOUND);
-        } else {
+        if ($students) {
             return APIHelper::makeAPIResponse(true, "Students data found", $students, APIHelper::HTTP_CODE_SUCCESS);
+        } else {
+            return APIHelper::makeAPIResponse(false, "Sorry, students data is empty", null, APIHelper::HTTP_NO_DATA_FOUND);
         }
     }
 
     // to store data
     public function store(Request $request)
     {
+        // validation schema to validate request and return error messages
+        $validation_schema = [
+            'name' => 'required',
+            'email' => 'required|email',
+            'phone' => 'required|numeric|digits_between:10,12',
+            'age' => 'required|numeric|digits_between:1,3'
+        ];
+
         $student = Student::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -40,15 +49,7 @@ class StudentController extends Controller
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => null
         ]);
-
-        // validation schema to validate request and return error messages
-        $validation_schema = [
-            'name' => 'required',
-            'email' => 'required|email',
-            'phone' => 'required|numeric|digits_between:10,12',
-            'age' => 'required|numeric|digits_between:1,3'
-        ];
-
+        // TODO:
         $validator = APIHelper::validateRequest($validation_schema, $request);
         if ($validator['errors']) {
             return APIHelper::makeAPIResponse(false, $validator['error_messages'], null, APIHelper::HTTP_CODE_BAD_REQUEST);
@@ -63,7 +64,6 @@ class StudentController extends Controller
     // get student by id
     public function show($id)
     {
-
         $student = Student::find($id);
         if ($student) {
             return APIHelper::makeAPIResponse(true, "Student data is successfully retrieved", $student, APIHelper::HTTP_CODE_SUCCESS);
@@ -114,7 +114,6 @@ class StudentController extends Controller
             $changes = [];
             foreach ($data as $key => $value) {
                 if ($value !== null) {
-
                     // if value is not null and the old value is different, then add it to the changes
                     if ($value !== $oldValues[$key]) {
                         $changes[$key] = [
@@ -146,11 +145,12 @@ class StudentController extends Controller
     // to search data
     public function search($name)
     {
+        // TODO: INTO INDEX
         $student = Student::where('name', 'like', '%' . $name . '%')->get();
-        if ($student->isEmpty()) {
-            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to retrieve, name not found", null, APIHelper::HTTP_CODE_BAD_REQUEST);
-        } else {
+        if ($student) {
             return APIHelper::makeAPIResponse(true, "Student data is successfully retrieved", $student, APIHelper::HTTP_CODE_SUCCESS);
+        } else {
+            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to retrieve, name not found", null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 }

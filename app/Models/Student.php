@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Student extends Model
 {
-    // used to create new instances of a model from a factory
+    // used to create new instances of a model from a factory for testing
     use HasFactory;
     protected $fillable = ['name', 'email', 'phone', 'age'];
 }
