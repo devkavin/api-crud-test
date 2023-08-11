@@ -25,7 +25,7 @@ class APIHelper
      * @param bool $status
      * @param string $message
      * @param int $status_code
-     * @param int $perPage
+     * @param int $limit
      * @param int $page
      * @param !null $data
      * @return \Illuminate\Http\JsonResponse
@@ -48,56 +48,62 @@ class APIHelper
     }
 
     // CUSTOM PAGINATION
-    // public function paginateResponse($data, $request, $perPage = 4, $page = null)
+    // public function paginateResponse($data, $request, $limit = 4, $page = null)
     // {
     //     // if data is empty, return empty array
     //     if ($data == null || empty($data)) {
     //         $data = [];
     //     }
     //     $page       = $request->input('page');
-    //     $perPage    = $request->input('limit');
+    //     $limit    = $request->input('limit');
     //     // if page is greater than total pages, return last page
     //     // if page is less than 1, return first page
     //     $page           = $page ?: (Paginator::resolveCurrentPage() ?: 1);
     //     $total          = count($data);
     //     $currentPage    = $page;
-    //     if ($page > count($data) / $perPage) {
-    //         $page = ceil(count($data) / $perPage);
+    //     if ($page > count($data) / $limit) {
+    //         $page = ceil(count($data) / $limit);
     //     }
-    //     $offset         = ($currentPage * $perPage) - $perPage;
-    //     $itemsToShow    = array_slice($data, $offset, $perPage);
-    //     // return dd($itemsToShow, $total, $perPage);
-    //     return new LengthAwarePaginator($itemsToShow, $total, $perPage);
+    //     $offset         = ($currentPage * $limit) - $limit;
+    //     $itemsToShow    = array_slice($data, $offset, $limit);
+    //     // return dd($itemsToShow, $total, $limit);
+    //     return new LengthAwarePaginator($itemsToShow, $total, $limit);
     // }
-    public function paginateResponse($data, $request, $perPage = 4, $page = null)
+    public function paginateResponse($data, $request, $limit = 4, $page = null)
     {
         $page            = $request->page;
-        $perPage         = $request->limit;
+        $limit           = $request->limit;
         if ($data == null || empty($data)) {
             return $data = [];
         }
         $total           = count($data);
         if ($total == 0) {
-            return new LengthAwarePaginator([], 0, $perPage, $page);
+            return new LengthAwarePaginator([], 0, $limit, $page);
         }
         // fix division by zero
-        if ($perPage == 0) {
-            $perPage = 1;
+        if ($limit == 0) {
+            $limit = 1;
         }
         // if page is greater than total pages, return last page
-        if ($page > ceil($total / $perPage)) {
-            $page = ceil($total / $perPage);
+        if ($page > ceil($total / $limit)) {
+            $page = ceil($total / $limit);
         }
         // if page is less than 1, return first page
         $page           = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $currentPage    = $page;
-        $offset         = ($currentPage * $perPage) - $perPage;
+        $offset         = ($currentPage * $limit) - $limit;
         // array slice to get the items to display
-        $itemsToShow    = array_slice($data, $offset, $perPage);
-        // return dd($itemsToShow, $total, $perPage);
+        $itemsToShow    = array_slice($data, $offset, $limit);
+        // return dd($itemsToShow, $total, $limit);
+        $response = [
+            "data"      => $itemsToShow,
+            "total"     => $total,
+            "page"      => $page,
+            "limit"     => $limit,
+        ];
 
         // LengthAwarePaginator to make the pagination
-        $paginated_data = [$itemsToShow, $total, $perPage, $page];
+        $paginated_data = $response;
         return $paginated_data;
     }
     // MAKE API DATA UPDATE RESPONSE
