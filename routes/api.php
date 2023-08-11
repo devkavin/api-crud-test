@@ -20,7 +20,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('students', [StudentController::class, 'index']);
+// Route::get('students', [StudentController::class, 'index']);
+Route::get('students/{page}/{limit}', [StudentController::class, 'index']);
 Route::get('student/test', [StudentController::class, 'test']);
 // to store data
 Route::post('student/store', [StudentController::class, 'store']);

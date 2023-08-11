@@ -4,6 +4,8 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Validator;
 
 class APIHelper
@@ -22,18 +24,13 @@ class APIHelper
     /**
      * @param bool $status
      * @param string $message
-     * @param null $data
      * @param int $status_code
+     * @param int $perPage
+     * @param int $page
+     * @param !null $data
      * @return \Illuminate\Http\JsonResponse
      */
 
-    public function getData($data)
-    {
-        $data = json_decode(json_encode($data), true);
-        return $data;
-    }
-
-    // MAKE API RESPONSE
     public static function makeAPIResponse($status = true, $message = "Success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
     {
         $response = [
@@ -41,14 +38,58 @@ class APIHelper
             "status_code" => $status_code,
             "message"     => $message,
         ];
-        // proper response format
-        if ($data != null || is_array($data)) {
-            $response["data"] = $data;
-        }
+
+        $apiHelper        = new APIHelper();
+        $data             = $data->toArray();
+        $paginated_data   = $apiHelper->paginateResponse($data, request());
+        $response["data"] = $paginated_data;
         // return response
         return response()->json($response, $status_code);
     }
 
+    // CUSTOM PAGINATION
+    // public function paginateResponse($data, $request, $perPage = 4, $page = null)
+    // {
+    //     // if data is empty, return empty array
+    //     if ($data == null || empty($data)) {
+    //         $data = [];
+    //     }
+    //     $page       = $request->input('page');
+    //     $perPage    = $request->input('limit');
+    //     // if page is greater than total pages, return last page
+    //     // if page is less than 1, return first page
+    //     $page           = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+    //     $total          = count($data);
+    //     $currentPage    = $page;
+    //     if ($page > count($data) / $perPage) {
+    //         $page = ceil(count($data) / $perPage);
+    //     }
+    //     $offset         = ($currentPage * $perPage) - $perPage;
+    //     $itemsToShow    = array_slice($data, $offset, $perPage);
+    //     // return dd($itemsToShow, $total, $perPage);
+    //     return new LengthAwarePaginator($itemsToShow, $total, $perPage);
+    // }
+    public function paginateResponse($data, $request, $perPage = 4, $page = null)
+    {
+        $page            = $request->page;
+        $perPage         = $request->limit;
+        if ($data == null || empty($data)) {
+            return $data = [];
+        }
+        $total           = count($data);
+        if ($total == 0) {
+            return new LengthAwarePaginator([], 0, $perPage, $page);
+        }
+        // if page is less than 1, return first page
+        $page           = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+        $currentPage    = $page;
+        $offset         = ($currentPage * $perPage) - $perPage;
+        $itemsToShow    = array_slice($data, $offset, $perPage);
+        // return dd($itemsToShow, $total, $perPage);
+        $paginated_data = new LengthAwarePaginator($itemsToShow, $total, $perPage, $page);
+
+        return $paginated_data;
+    }
     // MAKE API DATA UPDATE RESPONSE
     public static function makeAPIUpdateResponse($status = true, $message = "Success", $data = null, $changes = null, $status_code = self::HTTP_CODE_SUCCESS)
     {
@@ -84,29 +125,13 @@ class APIHelper
             $input = $request->only($schema_keys);
         }
 
-        // Validate data feilds against schema
+        // Validate data fields against schema
         $validator = Validator::make($input, $schema);
 
-        // Return validation errors, if something went wrong
         if ($validator->fails()) {
             return ['errors' => true, 'error_messages' => $validator->errors()];
         }
 
         return ['errors' => false, 'data' => $input];
-    }
-
-    public function testAPICALL($status = true, $message = "Success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
-    {
-        $response = [
-            "success"     => $status,
-            "status_code" => $status_code,
-            "message"     => $message,
-        ];
-        // proper response format
-        if ($data != null || is_array($data)) {
-            // getData
-        }
-        // return response
-        return response()->json($response, $status_code);
     }
 }
