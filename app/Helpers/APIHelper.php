@@ -78,7 +78,7 @@ class APIHelper
         }
         $total           = count($data);
         if ($total == 0) {
-            return new LengthAwarePaginator([], 0, $limit, $page);
+            return $data = [];
         }
         // fix division by zero
         if ($limit == 0) {
