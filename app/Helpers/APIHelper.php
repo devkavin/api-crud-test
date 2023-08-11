@@ -38,7 +38,6 @@ class APIHelper
             "status_code" => $status_code,
             "message"     => $message,
         ];
-
         $apiHelper        = new APIHelper();
         $paginated_data   = $apiHelper->paginateResponse($data, request());
         $response["data"] = $paginated_data;
@@ -47,36 +46,18 @@ class APIHelper
         return response()->json($response, $status_code);
     }
 
-    // CUSTOM PAGINATION
-    // public function paginateResponse($data, $request, $limit = 4, $page = null)
-    // {
-    //     // if data is empty, return empty array
-    //     if ($data == null || empty($data)) {
-    //         $data = [];
-    //     }
-    //     $page       = $request->input('page');
-    //     $limit    = $request->input('limit');
-    //     // if page is greater than total pages, return last page
-    //     // if page is less than 1, return first page
-    //     $page           = $page ?: (Paginator::resolveCurrentPage() ?: 1);
-    //     $total          = count($data);
-    //     $currentPage    = $page;
-    //     if ($page > count($data) / $limit) {
-    //         $page = ceil(count($data) / $limit);
-    //     }
-    //     $offset         = ($currentPage * $limit) - $limit;
-    //     $itemsToShow    = array_slice($data, $offset, $limit);
-    //     // return dd($itemsToShow, $total, $limit);
-    //     return new LengthAwarePaginator($itemsToShow, $total, $limit);
-    // }
     public function paginateResponse($data, $request, $limit = 4, $page = null)
     {
+        // get request params
         $page            = $request->page;
         $limit           = $request->limit;
+        // if data is empty, return empty array
         if ($data == null || empty($data)) {
             return $data = [];
         }
+        // get total items if data is not empty
         $total           = count($data);
+        // if total is 0, return empty array
         if ($total == 0) {
             return $data = [];
         }
@@ -95,13 +76,16 @@ class APIHelper
         // array slice to get the items to display
         $itemsToShow    = array_slice($data, $offset, $limit);
         // return dd($itemsToShow, $total, $limit);
+        // if there is only 1 item, return it as an array
+        if (count($itemsToShow) == 1) {
+            $itemsToShow = $data;
+        }
         $response = [
             "data"      => $itemsToShow,
             "total"     => $total,
             "page"      => $page,
             "limit"     => $limit,
         ];
-
         // LengthAwarePaginator to make the pagination
         $paginated_data = $response;
         return $paginated_data;

@@ -17,12 +17,12 @@ class StudentController extends Controller
 
     public function index()
     {
-        $students   = Student::all();
+        $students     = Student::all();
         // $students   = Student::all()->toArray();
         // $apiHelper  = new APIHelper();
         // $students   = $apiHelper->paginateResponse($students, $request);
         // return dd($students);
-        $students   = $students->toArray();
+        $students     = $students->toArray();
         return APIHelper::makeAPIResponse(true, "Success message", $students, APIHelper::HTTP_CODE_SUCCESS);
     }
 
@@ -71,6 +71,7 @@ class StudentController extends Controller
     {
         $student = Student::find($id);
         if ($student) {
+            $student = $student->toArray();
             return APIHelper::makeAPIResponse(true, "Student data is successfully retrieved", $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
             return APIHelper::makeAPIResponse(false, "Sorry, student data failed to retrieve, ID not found", null, APIHelper::HTTP_CODE_BAD_REQUEST);

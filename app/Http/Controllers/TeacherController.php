@@ -16,6 +16,8 @@ class TeacherController extends Controller
     public function index()
     {
         $teachers = Teacher::all();
+        // to paginate the response
+        $teachers = $teachers->toArray();
         return APIHelper::makeAPIResponse(true, "Success message", $teachers, APIHelper::HTTP_CODE_SUCCESS);
     }
 
@@ -48,11 +50,22 @@ class TeacherController extends Controller
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => null
         ]);
-
+        $teacher = $teacher->toArray();
         if ($teacher) {
             return APIHelper::makeAPIResponse(true, "Success message", $teacher, APIHelper::HTTP_CODE_SUCCESS);
         } else {
             return APIHelper::makeAPIResponse(false, "Sorry, teacher data failed to add", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+        }
+    }
+
+    public function show($id)
+    {
+        $teacher = Teacher::find($id);
+        if ($teacher) {
+            $teacher = $teacher->toArray();
+            return APIHelper::makeAPIResponse(true, "Success message", $teacher, APIHelper::HTTP_CODE_SUCCESS);
+        } else {
+            return APIHelper::makeAPIResponse(false, "Sorry, teacher data not found", null, APIHelper::HTTP_NO_DATA_FOUND);
         }
     }
 }

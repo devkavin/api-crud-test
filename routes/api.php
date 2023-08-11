@@ -20,29 +20,32 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Route::get('students', [StudentController::class, 'index']);
-Route::get('students/{page}/{limit}', [StudentController::class, 'index']);
+
+/**
+ * Student Routes
+ */
 Route::get('student/test', [StudentController::class, 'test']);
+// to get all data as paginated
+Route::get('students/{page}/{limit}', [StudentController::class, 'index']);
 // to store data
 Route::post('student/store', [StudentController::class, 'store']);
-
 // get student by id (no key, just value id)
 Route::get('student/details/{id}', [StudentController::class, 'show']);
-
 // to update data
 Route::put('student/update/{id}', [StudentController::class, 'update']);
-
 // to delete data
 Route::delete('student/delete/{id}', [StudentController::class, 'destroy']);
-
 // to search data by name or phone
 Route::get('student/search/{name}', [StudentController::class, 'search']);
 
 
-// Teacher
-// Route::get('teachers', [TeacherController::class, 'index']);
-Route::get('teachers/{page}/{limit}', [TeacherController::class, 'index']);
+/**
+ * Teacher Routes
+ */
 Route::get('teacher/test', [TeacherController::class, 'test']);
-
+// to get all data as paginated
+Route::get('teachers/{page}/{limit}', [TeacherController::class, 'index']);
 // to store data
 Route::post('teacher/store', [TeacherController::class, 'store']);
+// get teacher by id (no key, just value id)
+Route::get('teacher/details/{id}', [TeacherController::class, 'show']);
