@@ -40,5 +40,9 @@ Route::get('student/search/{name}', [StudentController::class, 'search']);
 
 
 // Teacher
-Route::get('teachers', [TeacherController::class, 'index']);
+// Route::get('teachers', [TeacherController::class, 'index']);
+Route::get('teachers/{page}/{limit}', [TeacherController::class, 'index']);
 Route::get('teacher/test', [TeacherController::class, 'test']);
+
+// to store data
+Route::post('teacher/store', [TeacherController::class, 'store']);

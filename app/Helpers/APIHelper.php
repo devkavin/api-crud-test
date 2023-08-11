@@ -40,9 +40,9 @@ class APIHelper
         ];
 
         $apiHelper        = new APIHelper();
-        $data             = $data->toArray();
         $paginated_data   = $apiHelper->paginateResponse($data, request());
         $response["data"] = $paginated_data;
+        // $response["data"] = $data;
         // return response
         return response()->json($response, $status_code);
     }
@@ -80,14 +80,24 @@ class APIHelper
         if ($total == 0) {
             return new LengthAwarePaginator([], 0, $perPage, $page);
         }
+        // fix division by zero
+        if ($perPage == 0) {
+            $perPage = 1;
+        }
+        // if page is greater than total pages, return last page
+        if ($page > ceil($total / $perPage)) {
+            $page = ceil($total / $perPage);
+        }
         // if page is less than 1, return first page
         $page           = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $currentPage    = $page;
         $offset         = ($currentPage * $perPage) - $perPage;
+        // array slice to get the items to display
         $itemsToShow    = array_slice($data, $offset, $perPage);
         // return dd($itemsToShow, $total, $perPage);
-        $paginated_data = new LengthAwarePaginator($itemsToShow, $total, $perPage, $page);
 
+        // LengthAwarePaginator to make the pagination
+        $paginated_data = [$itemsToShow, $total, $perPage, $page];
         return $paginated_data;
     }
     // MAKE API DATA UPDATE RESPONSE

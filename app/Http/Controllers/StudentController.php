@@ -15,13 +15,14 @@ class StudentController extends Controller
         return APIHelper::makeAPIResponse(false, "This is a Text response", null, APIHelper::HTTP_CODE_BAD_REQUEST);
     }
 
-    public function index(Request $request)
+    public function index()
     {
         $students   = Student::all();
         // $students   = Student::all()->toArray();
         // $apiHelper  = new APIHelper();
         // $students   = $apiHelper->paginateResponse($students, $request);
         // return dd($students);
+        $students   = $students->toArray();
         return APIHelper::makeAPIResponse(true, "Success message", $students, APIHelper::HTTP_CODE_BAD_REQUEST);
     }
 
@@ -56,6 +57,7 @@ class StudentController extends Controller
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => null
         ]);
+        $student = $student->toArray();
 
         if ($student) {
             return APIHelper::makeAPIResponse(true, "Student data is successfully added", $student, APIHelper::HTTP_CODE_SUCCESS);
@@ -82,8 +84,8 @@ class StudentController extends Controller
         $validation_schema = [
             //not required because it is not required to be changed
             'name'       => 'nullable',
-            'email'      => 'nullable|email',
-            'phone'      => 'nullable|numeric|digits_between:10,12',
+            'email'      => 'nullable|email|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/',
+            'phone'      => 'nullable|numeric|regex:/^0[0-9]{9,11}$/',
             'age'        => 'nullable|numeric|digits_between:1,3'
         ];
 
