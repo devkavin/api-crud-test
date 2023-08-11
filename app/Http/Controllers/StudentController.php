@@ -23,7 +23,7 @@ class StudentController extends Controller
         // $students   = $apiHelper->paginateResponse($students, $request);
         // return dd($students);
         $students   = $students->toArray();
-        return APIHelper::makeAPIResponse(true, "Success message", $students, APIHelper::HTTP_CODE_BAD_REQUEST);
+        return APIHelper::makeAPIResponse(true, "Success message", $students, APIHelper::HTTP_CODE_SUCCESS);
     }
 
 
