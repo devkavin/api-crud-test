@@ -28,21 +28,42 @@ class APIHelper
      * @param int $limit
      * @param int $page
      * @param !null $data
-     * @return \Illuminate\Http\JsonResponse
+     * @param bool $paginated
      */
 
-    public static function makeAPIResponse($status = true, $message = "Success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
+    public function getResponse($status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
     {
+
         $response = [
             "success"     => $status,
             "status_code" => $status_code,
             "message"     => $message,
         ];
+
+        return $response;
+    }
+
+    public function getPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
+    {
+        $response = [
+            "data"      => $data,
+            "total"     => $total,
+            "page"      => $page,
+            "limit"     => $limit,
+        ];
+        return $response;
+    }
+
+    public static function makeAPIResponse($status = true, $message = "Success", $data = null, $paginated = true, $status_code = self::HTTP_CODE_SUCCESS)
+    {
         $apiHelper        = new APIHelper();
-        $paginated_data   = $apiHelper->paginateResponse($data, request());
-        $response["data"] = $paginated_data;
-        // $response["data"] = $data;
-        // return response
+        $response         = $apiHelper->getResponse($status, $message, $status_code);
+        if ($paginated) {
+            $paginatedData   = $apiHelper->paginateResponse($data, request());
+            $response["data"] = $paginatedData;
+        } else {
+            $response["data"] = $data;
+        }
         return response()->json($response, $status_code);
     }
 
@@ -80,15 +101,9 @@ class APIHelper
         if (count($itemsToShow) == 1) {
             $itemsToShow = $data;
         }
-        $response = [
-            "data"      => $itemsToShow,
-            "total"     => $total,
-            "page"      => $page,
-            "limit"     => $limit,
-        ];
-        // LengthAwarePaginator to make the pagination
-        $paginated_data = $response;
-        return $paginated_data;
+        $apiHelper        = new APIHelper();
+        $paginatedResponse         = $apiHelper->getPaginatedResponse($itemsToShow, $total, $page, $limit);
+        return $paginatedResponse;
     }
     // MAKE API DATA UPDATE RESPONSE
     public static function makeAPIUpdateResponse($status = true, $message = "Success", $data = null, $changes = null, $status_code = self::HTTP_CODE_SUCCESS)

@@ -12,7 +12,7 @@ class StudentController extends Controller
     // test get function
     public function test()
     {
-        return APIHelper::makeAPIResponse(false, "This is a Text response", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+        return APIHelper::makeAPIResponse(false, "This is a Text response", null, true, APIHelper::HTTP_CODE_BAD_REQUEST);
     }
 
     public function index()
@@ -33,7 +33,7 @@ class StudentController extends Controller
         // validation schema to validate request and return error messages
         $validation_schema = [
             'name'      => 'required',
-            'email'     => 'required|email|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/',
+            'email'     => 'required|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', // can be optimized (common values)
             'phone'     => 'required|numeric|regex:/^0[0-9]{9,11}$/',
             'age'       => 'required|numeric|digits_between:1,3'
         ];
