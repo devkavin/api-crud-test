@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Pagination\Paginator;
@@ -31,7 +32,21 @@ class APIHelper
      * @param bool $paginated
      */
 
-    public function getResponse($status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
+    public function getRefinedData($data)
+    {
+        $refinedData = $data;
+
+        foreach ($refinedData as $key => $value) {
+            if (isset($value["created_at"])) {
+                $refinedData[$key]["created_at"] = Carbon::parse($value["created_at"])->format('Y-m-d H:i:s');
+            }
+            if (isset($value["updated_at"])) {
+                $refinedData[$key]["updated_at"] = Carbon::parse($value["updated_at"])->format('Y-m-d H:i:s');
+            }
+        }
+        return $refinedData;
+    }
+    public function getResponse($data, $status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
     {
 
         $response = [
@@ -54,15 +69,16 @@ class APIHelper
         return $response;
     }
 
-    public static function makeAPIResponse($status = true, $message = "Success", $data = null, $paginated = true, $status_code = self::HTTP_CODE_SUCCESS)
+    public static function makeAPIResponse($status = true, $message = "Success", $data = null, $paginated = false, $status_code = self::HTTP_CODE_SUCCESS)
     {
         $apiHelper        = new APIHelper();
-        $response         = $apiHelper->getResponse($status, $message, $status_code);
+        $refinedData      = $apiHelper->getRefinedData($data);
+        $response         = $apiHelper->getResponse($refinedData, $status, $message, $status_code);
         if ($paginated) {
-            $paginatedData   = $apiHelper->paginateResponse($data, request());
+            $paginatedData   = $apiHelper->paginateResponse($refinedData, request());
             $response["data"] = $paginatedData;
         } else {
-            $response["data"] = $data;
+            $response["data"] = $refinedData;
         }
         return response()->json($response, $status_code);
     }

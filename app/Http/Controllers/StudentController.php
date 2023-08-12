@@ -12,7 +12,7 @@ class StudentController extends Controller
     // test get function
     public function test()
     {
-        return APIHelper::makeAPIResponse(false, "This is a Text response", null, true, APIHelper::HTTP_CODE_BAD_REQUEST);
+        return APIHelper::makeAPIResponse(false, "This is a Text response", null, APIHelper::HTTP_CODE_BAD_REQUEST);
     }
 
     public function index()
