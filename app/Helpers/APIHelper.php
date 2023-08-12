@@ -32,10 +32,11 @@ class APIHelper
      * @param bool $paginated
      */
 
+    // Used Carbon extension to format date
+    // REF: https://carbon.nesbot.com/docs/
     public function getRefinedData($data)
     {
         $refinedData = $data;
-
         foreach ($refinedData as $key => $value) {
             if (isset($value["created_at"])) {
                 $refinedData[$key]["created_at"] = Carbon::parse($value["created_at"])->format('Y-m-d H:i:s');
