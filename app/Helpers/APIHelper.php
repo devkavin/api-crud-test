@@ -32,6 +32,19 @@ class APIHelper
      * @param bool $paginated
      */
 
+    public static function makeAPIResponse($status = true, $paginated = false, $message = "success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
+    {
+        $apiHelper        = new APIHelper();
+        $refinedData      = $apiHelper->getRefinedData($data);
+        $response         = $apiHelper->getResponse($refinedData, $status, $message, $status_code);
+        if ($paginated) {
+            $paginatedData   = $apiHelper->paginateResponse($refinedData, request());
+            $response["data"] = $paginatedData;
+        } else {
+            $response["data"] = $refinedData;
+        }
+        return response()->json($response, $status_code);
+    }
     // Used Carbon extension to format date
     // REF: https://carbon.nesbot.com/docs/
     public function getRefinedData($data)
@@ -70,21 +83,8 @@ class APIHelper
         return $response;
     }
 
-    public static function makeAPIResponse($status = true, $message = "Success", $data = null, $paginated = false, $status_code = self::HTTP_CODE_SUCCESS)
-    {
-        $apiHelper        = new APIHelper();
-        $refinedData      = $apiHelper->getRefinedData($data);
-        $response         = $apiHelper->getResponse($refinedData, $status, $message, $status_code);
-        if ($paginated) {
-            $paginatedData   = $apiHelper->paginateResponse($refinedData, request());
-            $response["data"] = $paginatedData;
-        } else {
-            $response["data"] = $refinedData;
-        }
-        return response()->json($response, $status_code);
-    }
 
-    public function paginateResponse($data, $request, $limit = 4, $page = null)
+    public function paginateResponse($data, $request, $limit = null, $page = null)
     {
         // get request params
         $page            = $request->page;
@@ -101,7 +101,14 @@ class APIHelper
         }
         // fix division by zero
         if ($limit == 0) {
-            $limit = 1;
+            return $data;
+        }
+        // if limit is 1, return all data
+        if ($limit == 1) {
+            return $data;
+        }
+        if ($page == 0) {
+            $page = 1;
         }
         // if page is greater than total pages, return last page
         if ($page > ceil($total / $limit)) {
@@ -125,18 +132,15 @@ class APIHelper
     // MAKE API DATA UPDATE RESPONSE
     public static function makeAPIUpdateResponse($status = true, $message = "Success", $data = null, $changes = null, $status_code = self::HTTP_CODE_SUCCESS)
     {
-        $response = [
-            "success"     => $status,
-            "status_code" => $status_code,
-            "message"     => $message,
-        ];
-        if ($data != null || is_array($data)) {
-            $response["data"] = $data;
+        $apiHelper        = new APIHelper();
+        $refinedData      = $apiHelper->getRefinedData($data);
+        $response         = $apiHelper->getResponse($refinedData, $status, $message, $status_code);
+        if ($data != null || is_array($refinedData)) {
+            $response["data"] = $refinedData;
         }
         if ($changes != null || is_array($changes)) {
             $response["changes"] = $changes;
         }
-
         // make response
         return response()->json($response, $status_code);
     }

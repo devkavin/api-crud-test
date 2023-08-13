@@ -12,18 +12,17 @@ class StudentController extends Controller
     // test get function
     public function test()
     {
-        return APIHelper::makeAPIResponse(false, "This is a Text response", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+        return APIHelper::makeAPIResponse(false, false, config('validationMessages.Test_response'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
     }
 
     public function index()
     {
-        $students     = Student::all();
+        $students     = Student::all()->toArray();
         // $students   = Student::all()->toArray();
         // $apiHelper  = new APIHelper();
         // $students   = $apiHelper->paginateResponse($students, $request);
         // return dd($students);
-        $students     = $students->toArray();
-        return APIHelper::makeAPIResponse(true, "Success message", $students, APIHelper::HTTP_CODE_SUCCESS);
+        return APIHelper::makeAPIResponse(true, true, config('validationMessages.success.action'), $students, config('statusCodes.HTTP_CODE_SUCCESS'));
     }
 
 
@@ -31,38 +30,35 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         // validation schema to validate request and return error messages
-        $validation_schema = [
-            'name'      => 'required',
-            'email'     => 'required|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', // can be optimized (common values)
-            'phone'     => 'required|numeric|regex:/^0[0-9]{9,11}$/',
-            'age'       => 'required|numeric|digits_between:1,3'
-        ];
+        $validation_schema = config('validationSchemas.student.store');
 
         $validator = APIHelper::validateRequest($validation_schema, $request);
         if ($validator['errors']) {
-            return APIHelper::makeAPIResponse(false, $validator['error_messages'], null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, $validator['error_messages'], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
 
         // check if email already exists
         $student = Student::where('email', $request->email)->first();
         if ($student) {
-            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to add, email already exists", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, config('validationMessages.exist.store'), $student, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
+
         $student = Student::create([
             'name'       => $request->name,
             'email'      => $request->email,
             'phone'      => $request->phone,
-            'age'        => (int)$request->age,
+            'age'        => $request->age,
             // stored in Y-m-d H:i:s format
             'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => null
+            'updated_at' => date('Y-m-d H:i:s'),
         ]);
+
         $student = $student->toArray();
 
         if ($student) {
-            return APIHelper::makeAPIResponse(true, "Student data is successfully added", $student, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, false, config('validationMessages.success.store'), $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
-            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to add", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, config('validationMessages.failed.store'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 
@@ -72,9 +68,9 @@ class StudentController extends Controller
         $student = Student::find($id);
         if ($student) {
             $student = $student->toArray();
-            return APIHelper::makeAPIResponse(true, "Student data is successfully retrieved", $student, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, false, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
-            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to retrieve, ID not found", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, config('validationMessages.not_found.retrieve'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 
@@ -82,33 +78,28 @@ class StudentController extends Controller
     // only has to update the data that is changed
     public function update(Request $request, $id)
     {
-        $validation_schema = [
-            //not required because it is not required to be changed
-            'name'       => 'nullable',
-            'email'      => 'nullable|email|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/',
-            'phone'      => 'nullable|numeric|regex:/^0[0-9]{9,11}$/',
-            'age'        => 'nullable|numeric|digits_between:1,3'
-        ];
+        $validation_schema = config('validationSchemas.student.update');
+
 
         $validator = APIHelper::validateRequest($validation_schema, $request);
         if ($validator['errors']) {
-            return APIHelper::makeAPIResponse(false, $validator['error_messages'], null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, $validator['error_messages'], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
         // check if email already exists
         $student = Student::where('email', $request->email)->first();
         if ($student) {
-            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to update, email already exists", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, config('validationMessages.exist.store'), $student, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
         $student = Student::find($id);
         if ($student) {
             // only() is used to get only the specified keys from the request,
             // unwanted keys will be ignored
+
             $data = $request->only([
                 'name',
                 'email',
                 'phone',
                 'age',
-                'updated_at' => date('Y-m-d H:i:s')
             ]);
 
             // to store old value from database
@@ -135,9 +126,9 @@ class StudentController extends Controller
                     }
                 }
             }
-            return APIHelper::makeAPIUpdateResponse(true, "Student data is successfully updated", $student, $changes, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIUpdateResponse(true, config('validationMessages.success.update'), $student, $changes, APIHelper::HTTP_CODE_SUCCESS);
         } else {
-            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to update", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, config('validationMessages.failed.update'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 
@@ -147,10 +138,10 @@ class StudentController extends Controller
         $student = Student::find($id);
         if ($student) {
             $student->delete();
-            return APIHelper::makeAPIResponse(true, "Student data is successfully deleted", $student, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, false, config('validationMessages.success.delete'), $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
             // if the id is not found
-            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to delete", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, config('validationMessages.failed.delete'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 
@@ -159,9 +150,9 @@ class StudentController extends Controller
     {
         $student = Student::where('name', 'like', '%' . $name . '%')->get();
         if ($student) {
-            return APIHelper::makeAPIResponse(true, "Student data is successfully retrieved", $student, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, false, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
-            return APIHelper::makeAPIResponse(false, "Sorry, student data failed to retrieve, name not found", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, config('validationMessages.failed.action'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 }
