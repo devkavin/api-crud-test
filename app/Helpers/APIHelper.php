@@ -38,11 +38,14 @@ class APIHelper
 
     public static function makeAPIResponse($status = true, $paginated = false, $message = "success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
     {
-        $apiHelper        = new APIHelper();
-        $refinedData      = $apiHelper->getRefinedData($data);
-        $response         = $apiHelper->getResponse($refinedData, $status, $message, $status_code);
+        // $apiHelper is not used because the function is static, which means it can be called without creating an instance of the class first
+        // only place where you have to create an instance of the class first is when you want to call a non-static function like paginateResponse
+        // paginate response is non
+        // $apiHelper        = new APIHelper();
+        $refinedData      = self::getRefinedData($data);
+        $response         = self::getResponse($refinedData, $status, $message, $status_code);
         if ($paginated) {
-            $paginatedData      = $apiHelper->paginateResponse($refinedData, request());
+            $paginatedData      = APIHelper::paginateResponse($refinedData, request());
             $response["data"]   = $paginatedData;
         } else {
             $response["data"]   = $refinedData;
@@ -71,7 +74,7 @@ class APIHelper
         return $refinedData;
     }
     //getStudentData function to retrieve data from request
-    public static function getStoreStudentData($request)
+    public function getStoreStudentData($request)
     {
         $requestData = [
             'name'       => $request->name,
@@ -84,7 +87,7 @@ class APIHelper
         ];
         return $requestData;
     }
-    public static function getupdateStudentData($request)
+    public function getupdateStudentData($request)
     {
         $requestData = $request->only([
             'name',
@@ -95,15 +98,23 @@ class APIHelper
         return $requestData;
     }
 
+    public static function getOldValues($student, $requestData)
+    {
+        foreach ($requestData as $key => $value) {
+            if ($value !== null) {
+                $oldValues[$key] = $student->{$key};
+            }
+        }
+        return $oldValues;
+    }
+
     public static function getResponse($data, $status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
     {
-
         $response = [
             "success"     => $status,
             "status_code" => $status_code,
             "message"     => $message,
         ];
-
         return $response;
     }
 
@@ -118,10 +129,8 @@ class APIHelper
         return $response;
     }
 
-
     public static function paginateResponse($data, $request, $limit = null, $page = null)
     {
-        // if data is empty, return empty array
         if ($data == null || empty($data)) {
             return $data = [];
         }
@@ -161,16 +170,17 @@ class APIHelper
         if (count($itemsToShow) == 1) {
             $itemsToShow = $data;
         }
-        $apiHelper       = new APIHelper();
-        $paginatedResponse         = $apiHelper->getPaginatedResponse($itemsToShow, $total, $page, $limit);
+        // $apiHelper       = new APIHelper();
+        $paginatedResponse         = self::getPaginatedResponse($itemsToShow, $total, $page, $limit);
         return $paginatedResponse;
     }
+
     // MAKE API DATA UPDATE RESPONSE
     public static function makeAPIUpdateResponse($status = true, $message = "Success", $data = null, $changes = null, $status_code = self::HTTP_CODE_SUCCESS)
     {
-        $apiHelper        = new APIHelper();
-        $refinedData      = $apiHelper->getRefinedData($data);
-        $response         = $apiHelper->getResponse($refinedData, $status, $message, $status_code);
+        // $apiHelper        = new APIHelper();
+        $refinedData      = self::getRefinedData($data);
+        $response         = self::getResponse($refinedData, $status, $message, $status_code);
         if ($data != null || is_array($refinedData)) {
             $response["data"] = $refinedData;
         }
