@@ -17,13 +17,15 @@ class StudentController extends Controller
 
     public function index(Request $request)
     {
+        $apiHelper = new APIHelper();
         // self TODO: add validation
         $startDate = $request->startDate;
         $endDate   = $request->endDate;
         $course    = $request->course;
         // if startDate and endDate are not null, and startDate is less than endDate
         // && is the AND operator
-        // TODO: create a function to check request parameters
+        // TODO: create a custom function to check request parameters
+        // $students = $apiHelper->checkRequest($request);
         if ($course && $startDate && $endDate) {
             // get all students between startDate and endDate for the course
             $students = Student::where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
@@ -45,9 +47,9 @@ class StudentController extends Controller
     // to store data
     public function store(Request $request)
     {
-        $apiHelper = new APIHelper();
+        $apiHelper          = new APIHelper();
         // validation schema to validate request and return error messages
-        $validation_schema = config('validationSchemas.student.store');
+        $validation_schema  = config('validationSchemas.student.store');
 
         $validator = APIHelper::validateRequest($validation_schema, $request);
         if ($validator['errors']) {
@@ -59,16 +61,11 @@ class StudentController extends Controller
         if ($student) {
             return APIHelper::makeAPIResponse(false, false, config('validationMessages.exist.store'), $student, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
-
         // called as an instance method because an instance is created in the APIHelper class instead of a static method
         // static methods are called using the class name because they are not instantiated and are directly called
-        $requestData = $apiHelper->getStoreStudentData($request);
-
-        // create a new student
-        $student = Student::create($requestData);
-
-        $student = $student->toArray();
-
+        $requestData        = $apiHelper->getStoreStudentData($request);
+        $student            = Student::create($requestData);
+        $student            = $student->toArray();
         if ($student) {
             return APIHelper::makeAPIResponse(true, false, config('validationMessages.success.store'), $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
@@ -92,8 +89,8 @@ class StudentController extends Controller
     // only has to update the data that is changed
     public function update(Request $request, $id)
     {
-        $apiHelper = new APIHelper();
-        $validation_schema = config('validationSchemas.student.update');
+        $apiHelper          = new APIHelper();
+        $validation_schema  = config('validationSchemas.student.update');
 
 
         $validator = APIHelper::validateRequest($validation_schema, $request);
@@ -111,7 +108,7 @@ class StudentController extends Controller
             // create a custom function to get only data from the request but still using the getStudentData function
             // ISSUE: if the request has a key that is not in the database, it will still be added to the data
             // created a custom update function use the only() function to get only the keys that are specified
-            $requestData = $apiHelper->getUpdateStudentData($request);
+            $requestData    = $apiHelper->getUpdateStudentData($request);
 
             // // only() is used to get only the specified keys from the request,
             // // unwanted keys will be ignored

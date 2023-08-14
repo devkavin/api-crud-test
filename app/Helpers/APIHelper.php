@@ -201,4 +201,9 @@ class APIHelper
 
         return ['errors' => false, 'data' => $input];
     }
+
+    public function checkRequest($request)
+    {
+        // TODO: Check whether the request is filtering dates, course, or date
+    }
 }
