@@ -22,14 +22,18 @@ class APIHelper
     const HTTP_CODE_BAD_AUTH_REQUEST = 403;
     const INVALID_DATA               = 422;
 
+
+    // TODO: check what @param are for
+    // @params are used to define the type of the variable
     /**
      * @param bool $status
+     * @param bool $paginated
      * @param string $message
      * @param int $status_code
-     * @param int $limit
-     * @param int $page
      * @param !null $data
-     * @param bool $paginated
+     * @param int $status_code
+     * @param int $page
+     * @param int $limit
      */
 
     public static function makeAPIResponse($status = true, $paginated = false, $message = "success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
@@ -38,13 +42,14 @@ class APIHelper
         $refinedData      = $apiHelper->getRefinedData($data);
         $response         = $apiHelper->getResponse($refinedData, $status, $message, $status_code);
         if ($paginated) {
-            $paginatedData   = $apiHelper->paginateResponse($refinedData, request());
-            $response["data"] = $paginatedData;
+            $paginatedData      = $apiHelper->paginateResponse($refinedData, request());
+            $response["data"]   = $paginatedData;
         } else {
-            $response["data"] = $refinedData;
+            $response["data"]   = $refinedData;
         }
         return response()->json($response, $status_code);
     }
+
     // Used Carbon extension to format date
     // REF: https://carbon.nesbot.com/docs/
     public function getRefinedData($data)
@@ -60,6 +65,31 @@ class APIHelper
         }
         return $refinedData;
     }
+    //getStudentData function to retrieve data from request
+    public function getStoreStudentData($request)
+    {
+        $requestData = [
+            'name'       => $request->name,
+            'email'      => $request->email,
+            'phone'      => $request->phone,
+            'age'        => $request->age,
+            // stored in Y-m-d H:i:s format
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+        return $requestData;
+    }
+    public function getupdateStudentData($request)
+    {
+        $requestData = $request->only([
+            'name',
+            'email',
+            'phone',
+            'age',
+        ]);
+        return $requestData;
+    }
+
     public function getResponse($data, $status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
     {
 
@@ -86,35 +116,36 @@ class APIHelper
 
     public function paginateResponse($data, $request, $limit = null, $page = null)
     {
-        // get request params
-        $page            = $request->page;
-        $limit           = $request->limit;
         // if data is empty, return empty array
         if ($data == null || empty($data)) {
             return $data = [];
         }
         // get total items if data is not empty
+        $page            = $request->page;
+        $limit           = $request->limit;
         $total           = count($data);
         // if total is 0, return empty array
         if ($total == 0) {
             return $data = [];
         }
+        if ($page == 0) {
+            $page = 1;
+        }
         // fix division by zero
         if ($limit == 0) {
             return $data;
         }
-        // if limit is 1, return all data
         if ($limit == 1) {
             return $data;
         }
-        if ($page == 0) {
-            $page = 1;
-        }
-        // if page is greater than total pages, return last page
         if ($page > ceil($total / $limit)) {
-            $page = ceil($total / $limit);
+            return config('validationMessages.not_found.page');
         }
-        // if page is less than 1, return first page
+        if ($limit > $total) {
+            return config('validationMessages.invalid.limit');
+        }
+        // if page is less than 1, return current page
+        // paginator::resolvecurrentpage() returns the current page
         $page           = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $currentPage    = $page;
         $offset         = ($currentPage * $limit) - $limit;
@@ -125,7 +156,7 @@ class APIHelper
         if (count($itemsToShow) == 1) {
             $itemsToShow = $data;
         }
-        $apiHelper        = new APIHelper();
+        $apiHelper       = new APIHelper();
         $paginatedResponse         = $apiHelper->getPaginatedResponse($itemsToShow, $total, $page, $limit);
         return $paginatedResponse;
     }

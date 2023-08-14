@@ -15,20 +15,37 @@ class StudentController extends Controller
         return APIHelper::makeAPIResponse(false, false, config('validationMessages.Test_response'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $students     = Student::all()->toArray();
+        // self TODO: add validation
+        $startDate = $request->startDate;
+        $endDate   = $request->endDate;
+        $course    = $request->course;
+        // if startDate and endDate are not null, and startDate is less than endDate
+        // && is the AND operator
+        // TODO: create a function to check request parameters
+        if ($course && $startDate && $endDate) {
+            // get all students between startDate and endDate for the course
+            $students = Student::where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
+        } else if ($startDate && $endDate && $startDate < $endDate) {
+            // get all students between startDate and endDate
+            $students = Student::whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
+        } else if ($course) {
+            $students = Student::where('course', $course)->get()->toArray();
+        } else {
+            $students = Student::all()->toArray();
+        }
         // $students   = Student::all()->toArray();
-        // $apiHelper  = new APIHelper();
-        // $students   = $apiHelper->paginateResponse($students, $request);
-        // return dd($students);
+        // // $apiHelper  = new APIHelper();
+        // // $students   = $apiHelper->paginateResponse($students, $request);
+        // // return dd($students);
         return APIHelper::makeAPIResponse(true, true, config('validationMessages.success.action'), $students, config('statusCodes.HTTP_CODE_SUCCESS'));
     }
-
 
     // to store data
     public function store(Request $request)
     {
+        $apiHelper = new APIHelper();
         // validation schema to validate request and return error messages
         $validation_schema = config('validationSchemas.student.store');
 
@@ -43,15 +60,12 @@ class StudentController extends Controller
             return APIHelper::makeAPIResponse(false, false, config('validationMessages.exist.store'), $student, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
 
-        $student = Student::create([
-            'name'       => $request->name,
-            'email'      => $request->email,
-            'phone'      => $request->phone,
-            'age'        => $request->age,
-            // stored in Y-m-d H:i:s format
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        // called as an instance method because an instance is created in the APIHelper class instead of a static method
+        // static methods are called using the class name because they are not instantiated and are directly called
+        $requestData = $apiHelper->getStoreStudentData($request);
+
+        // create a new student
+        $student = Student::create($requestData);
 
         $student = $student->toArray();
 
@@ -78,6 +92,7 @@ class StudentController extends Controller
     // only has to update the data that is changed
     public function update(Request $request, $id)
     {
+        $apiHelper = new APIHelper();
         $validation_schema = config('validationSchemas.student.update');
 
 
@@ -92,30 +107,34 @@ class StudentController extends Controller
         }
         $student = Student::find($id);
         if ($student) {
-            // only() is used to get only the specified keys from the request,
-            // unwanted keys will be ignored
 
-            $data = $request->only([
-                'name',
-                'email',
-                'phone',
-                'age',
-            ]);
+            // create a custom function to get only data from the request but still using the getStudentData function
+            // ISSUE: if the request has a key that is not in the database, it will still be added to the data
+            // created a custom update function use the only() function to get only the keys that are specified
+            $requestData = $apiHelper->getUpdateStudentData($request);
 
+            // // only() is used to get only the specified keys from the request,
+            // // unwanted keys will be ignored
+            // $data = $request->only([
+            //     'name',
+            //     'email',
+            //     'phone',
+            //     'age',
+            // ]);
             // to store old value from database
             $oldValues = [];
-            foreach ($data as $key => $value) {
+            foreach ($requestData as $key => $value) {
                 if ($value !== null) {
                     $oldValues[$key] = $student->{$key};
                 }
             }
 
             // save the new values
-            $student->update($data);
+            $student->update($requestData);
 
             // to store the changes
             $changes = [];
-            foreach ($data as $key => $value) {
+            foreach ($requestData as $key => $value) {
                 if ($value !== null) {
                     // if value is not null and the old value is different, then add it to the changes
                     if ($value !== $oldValues[$key]) {
@@ -142,17 +161,6 @@ class StudentController extends Controller
         } else {
             // if the id is not found
             return APIHelper::makeAPIResponse(false, false, config('validationMessages.failed.delete'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
-        }
-    }
-
-    // to search data
-    public function search($name)
-    {
-        $student = Student::where('name', 'like', '%' . $name . '%')->get();
-        if ($student) {
-            return APIHelper::makeAPIResponse(true, false, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
-        } else {
-            return APIHelper::makeAPIResponse(false, false, config('validationMessages.failed.action'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 }

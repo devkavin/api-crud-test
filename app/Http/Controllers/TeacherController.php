@@ -10,26 +10,21 @@ class TeacherController extends Controller
 {
     public function test()
     {
-        return APIHelper::makeAPIResponse(false, "This is a Text response", null, APIHelper::HTTP_CODE_SUCCESS);
+        return APIHelper::makeAPIResponse(false, false, config('validationMessages.Test_response'), null, APIHelper::HTTP_CODE_SUCCESS);
     }
 
     public function index()
     {
-        $teachers = Teacher::all();
+        $teachers = Teacher::all()->toArray();
         // to paginate the response
-        $teachers = $teachers->toArray();
-        return APIHelper::makeAPIResponse(true, "Success message", $teachers, APIHelper::HTTP_CODE_SUCCESS);
+        // $teachers = $teachers->toArray();
+        return APIHelper::makeAPIResponse(true, true, config('validationMessages.success.action'), $teachers, APIHelper::HTTP_CODE_SUCCESS);
     }
 
     public function store(Request $request)
     {
-        $validation_schema = [
-            'name'      => 'required',
-            'email'     => 'required|email|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/',
-            'phone'     => 'required|numeric|regex:/^0[0-9]{9,11}$/',
-            'age'       => 'required|numeric|digits_between:1,3',
-            'department' => 'required|'
-        ];
+
+        $validation_schema = config('validationSchemas.teacher.store');
 
         $validator = APIHelper::validateRequest($validation_schema, $request);
         if ($validator['errors']) {
@@ -38,7 +33,7 @@ class TeacherController extends Controller
 
         $teacher = Teacher::where('email', $request->email)->first();
         if ($teacher) {
-            return APIHelper::makeAPIResponse(false, "Sorry, teacher data failed to add, email already exists", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, "Sorry, teacher data failed to add, email already exists", null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
 
         $teacher = Teacher::create([
@@ -52,9 +47,9 @@ class TeacherController extends Controller
         ]);
         $teacher = $teacher->toArray();
         if ($teacher) {
-            return APIHelper::makeAPIResponse(true, "Success message", $teacher, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, false, "Success message", $teacher, APIHelper::HTTP_CODE_SUCCESS);
         } else {
-            return APIHelper::makeAPIResponse(false, "Sorry, teacher data failed to add", null, APIHelper::HTTP_CODE_BAD_REQUEST);
+            return APIHelper::makeAPIResponse(false, false, "Sorry, teacher data failed to add", null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 
@@ -63,9 +58,9 @@ class TeacherController extends Controller
         $teacher = Teacher::find($id);
         if ($teacher) {
             $teacher = $teacher->toArray();
-            return APIHelper::makeAPIResponse(true, "Success message", $teacher, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, false, "Success message", $teacher, APIHelper::HTTP_CODE_SUCCESS);
         } else {
-            return APIHelper::makeAPIResponse(false, "Sorry, teacher data not found", null, APIHelper::HTTP_NO_DATA_FOUND);
+            return APIHelper::makeAPIResponse(false, false, "Sorry, teacher data not found", null, APIHelper::HTTP_NO_DATA_FOUND);
         }
     }
 }

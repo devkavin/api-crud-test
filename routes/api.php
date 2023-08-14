@@ -20,7 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
 /**
  * Student Routes
  */
@@ -37,7 +36,6 @@ Route::put('student/update/{id}', [StudentController::class, 'update']);
 Route::delete('student/delete/{id}', [StudentController::class, 'destroy']);
 // to search data by name or phone
 Route::get('student/search/{name}', [StudentController::class, 'search']);
-
 
 /**
  * Teacher Routes
