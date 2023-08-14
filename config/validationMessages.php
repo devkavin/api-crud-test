@@ -61,4 +61,12 @@ return [
         "store"               => "Data already exist, nothing to store",
         "update"              => "Data already exist, nothing to update",
     ],
+
+    "regex"     => [
+        "name"                 => "Invalid name",
+        "email"                => "Invalid email address",
+        "phone"                => "Invalid phone number",
+        "age"                  => "Invalid age",
+
+    ],
 ];

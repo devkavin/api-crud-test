@@ -52,9 +52,14 @@ class APIHelper
 
     // Used Carbon extension to format date
     // REF: https://carbon.nesbot.com/docs/
-    public function getRefinedData($data)
+    public static function getRefinedData($data)
     {
         $refinedData = $data;
+        // fix Invalid argument supplied for foreach() error
+        if (!is_array($refinedData)) {
+            return $refinedData;
+        }
+
         foreach ($refinedData as $key => $value) {
             if (isset($value["created_at"])) {
                 $refinedData[$key]["created_at"] = Carbon::parse($value["created_at"])->format('Y-m-d H:i:s');
@@ -66,7 +71,7 @@ class APIHelper
         return $refinedData;
     }
     //getStudentData function to retrieve data from request
-    public function getStoreStudentData($request)
+    public static function getStoreStudentData($request)
     {
         $requestData = [
             'name'       => $request->name,
@@ -79,7 +84,7 @@ class APIHelper
         ];
         return $requestData;
     }
-    public function getupdateStudentData($request)
+    public static function getupdateStudentData($request)
     {
         $requestData = $request->only([
             'name',
@@ -90,7 +95,7 @@ class APIHelper
         return $requestData;
     }
 
-    public function getResponse($data, $status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
+    public static function getResponse($data, $status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
     {
 
         $response = [
@@ -102,7 +107,7 @@ class APIHelper
         return $response;
     }
 
-    public function getPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
+    public static function getPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
     {
         $response = [
             "data"      => $data,
@@ -114,7 +119,7 @@ class APIHelper
     }
 
 
-    public function paginateResponse($data, $request, $limit = null, $page = null)
+    public static function paginateResponse($data, $request, $limit = null, $page = null)
     {
         // if data is empty, return empty array
         if ($data == null || empty($data)) {
@@ -192,17 +197,38 @@ class APIHelper
             $input = $request->only($schema_keys);
         }
 
-        // Validate data fields against schema
+        // // Validate data fields against schema
         $validator = Validator::make($input, $schema);
 
+        // // OLD VALIDATOR which uses the errors() method
+        // if ($validator->fails()) {
+        //     // Return validation errors, if something went wrong
+        //     if ($validator->fails()) {
+        //         return ['errors' => true, 'error_messages' => $validator->errors()];
+        //     }
+        // }
+
         if ($validator->fails()) {
-            return ['errors' => true, 'error_messages' => $validator->errors()];
+            // Get validation messages for the regex rule from the validation messages config file
+            $validationMessages = config('validationMessages.regex');
+            $errors = $validator->errors()->getMessages();
+
+            // Iterate over the errors array and get the validation message for each error
+            foreach ($errors as $key => $value) {
+                $errors[$key] = $validationMessages[$key] ?? $value;
+            }
+
+            return [
+                'errors'            => true,
+                'error_messages'    => $errors,
+            ];
         }
+
 
         return ['errors' => false, 'data' => $input];
     }
 
-    public function checkRequest($request)
+    public static function checkRequest($request)
     {
         // TODO: Check whether the request is filtering dates, course, or date
     }
