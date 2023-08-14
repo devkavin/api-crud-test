@@ -26,6 +26,8 @@ class StudentController extends Controller
         // && is the AND operator
         // TODO: create a custom function to check request parameters
         // $students = $apiHelper->checkRequest($request);
+
+        // TODO: create a custom function to check request parameters and use switch case instead of if else
         if ($course && $startDate && $endDate) {
             // get all students between startDate and endDate for the course
             $students = Student::where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
@@ -117,18 +119,20 @@ class StudentController extends Controller
             //     'phone',
             //     'age',
             // ]);
-            // to store old value from database
+            // create custom function to store old value from database
             $oldValues = [];
-            foreach ($requestData as $key => $value) {
-                if ($value !== null) {
-                    $oldValues[$key] = $student->{$key};
-                }
-            }
+            $oldValues = APIHelper::getOldValues($student, $requestData);
+            // foreach ($requestData as $key => $value) {
+            //     if ($value !== null) {
+            //         $oldValues[$key] = $student->{$key};
+            //     }
+            // }
 
             // save the new values
             $student->update($requestData);
 
-            // to store the changes
+            // create custom function to store the changes
+
             $changes = [];
             foreach ($requestData as $key => $value) {
                 if ($value !== null) {
