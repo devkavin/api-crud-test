@@ -103,49 +103,28 @@ class APIHelper
 
     public function getStoreStudentData($request)
     {
-        // LAST LAST EDIT
-        $nameKey        = config('constants.common.name');
-        $emailKey       = config('constants.common.email');
-        $phoneKey       = config('constants.common.phone');
-        $ageKey         = config('constants.common.age');
-        $created_atKey  = config('constants.timestamp.created_at');
-        $updated_atKey  = config('constants.timestamp.updated_at');
-        $dateTimeFormat = config('formats.dateTime');
-
-        $constants      = config('constants');
+        $common         = config('constants.common');
+        $formats        = config('formats');
 
         $requestData = [
-            $constants['common']['name']       => $request->name,
-            $emailKey      => $request->email,
-            $phoneKey      => $request->phone,
-            $ageKey        => $request->age,
-            // stored in Y-m-d H:i:s format
-            $created_atKey => date($dateTimeFormat),
-            $updated_atKey => date($dateTimeFormat),
+            $common['name']           => $request->name,
+            $common['email']          => $request->email,
+            $common['phone']          => $request->phone,
+            $common['age']            => $request->age,
+            $common['course']         => $request->course,
+            $common['created_at']     => date($formats['dateTime']),
+            $common['updated_at']     => date($formats['dateTime']),
         ];
         return $requestData;
-
-        // $constants = config('constants');
-
-        // $requestData = [
-        //     $constants['common']['name']       => $request->name,
-        //     $constants['common']['email']      => $request->email,
-        //     $constants['common']['phone']      => $request->phone,
-        //     $constants['common']['age']        => $request->age,
-        //     // stored in Y-m-d H:i:s format
-        //     $constants['timestamp']['created_at'] => date($constants['formats']['dateTime']),
-        //     $constants['timestamp']['updated_at'] => date($constants['formats']['dateTime']),
-        // ];
-        // return $requestData;
     }
 
     public function getupdateStudentData($request)
     {
+        // LAST EDIT HERE
+        $common         = config('constants.common');
+        $commonKeys         = array_keys($common);
         $requestData = $request->only([
-            'name',
-            'email',
-            'phone',
-            'age',
+            $commonKeys
         ]);
         return $requestData;
     }

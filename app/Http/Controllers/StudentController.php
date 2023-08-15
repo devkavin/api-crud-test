@@ -19,6 +19,10 @@ class StudentController extends Controller
     {
         $model = new Student();
 
+        $common         = config('constants.common');
+        $common         = array_keys($common);
+        return $common;
+
         // search function, paginate inside the controller.
 
         // search function
