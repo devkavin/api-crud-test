@@ -17,39 +17,86 @@ class StudentController extends Controller
 
     public function index(Request $request)
     {
-        // $apiHelper = new APIHelper();
-        // self TODO: add validation
-        $startDate = $request->startDate;
-        $endDate   = $request->endDate;
-        $course    = $request->course;
+        $model = new Student();
+
+        // search function, paginate inside the controller.
+
+        // search function
+        $searchResult = APIHelper::search($request, $model);
+
+        // format dates
+        $formattedResponseData = APIHelper::formatDates($searchResult);
+        // return $formattedResponseData;
+
+        $paginateResponse     = APIHelper::createPaginatedResponseData($formattedResponseData, $model);
+
+
+        // return $searchResult;
+        return $paginateResponse;
+
+
+        // paginate search result
+
+
+
+        // return $responseData;
+
+        // save result to $response
+
+        // return $response
+
+
+
+
+        //
+        // only the final stage of the variables should be sent to makeAPIResponse
+        //
+        return APIHelper::makeAPIResponse(true, true, config('validationMessages.success.action'), $model, config('statusCodes.HTTP_CODE_SUCCESS'));
         // if startDate and endDate are not null, and startDate is less than endDate
         // && is the AND operator
         // TODO: create a custom function to check request parameters
         // $students = $apiHelper->checkRequest($request);
+        // custom pagination at database level using limit and offset
+        // get limit and page from request
+        // $limit = $request->limit;
+        // $page  = $request->page;
 
-        // TODO: create a custom function to check request parameters and use switch case instead of if else
-        if ($course && $startDate && $endDate) {
-            // get all students between startDate and endDate for the course
-            $students = Student::where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
-        } else if ($startDate && $endDate && $startDate < $endDate) {
-            // get all students between startDate and endDate
-            $students = Student::whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
-        } else if ($course) {
-            $students = Student::where('course', $course)->get()->toArray();
-        } else {
-            $students = Student::all()->toArray();
-        }
+        // // calculate offset
+        // $offset = ($page * $limit) - $limit;
+
+        // // get students
+        // $students = Student::limit($limit)->offset($offset)->get()->toArray();
+        // object name to pass to paginateResponse function
+        // $students = APIHelper::paginateResponse($request, $model);
+        // $students        = Student::all()->toArray();
+        // $refinedStudents = APIHelper::getRefinedData($students);
+        // return $students;
+        // return $refinedStudents;
+
+        // // TODO: create a custom function to check request parameters and use SWITCH CASE instead of if else
+        // if ($course && $startDate && $endDate) {
+        //     // get all students between startDate and endDate for the course
+        //     $students = Student::where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
+        // } else if ($startDate && $endDate && $startDate < $endDate) {
+        //     // get all students between startDate and endDate
+        //     $students = Student::whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
+        // } else if ($course) {
+        //     $students = Student::where('course', $course)->get()->toArray();
+        // } else {
+        //     $students = Student::all()->toArray();
+        // }
         // $students   = Student::all()->toArray();
         // // $apiHelper  = new APIHelper();
         // // $students   = $apiHelper->paginateResponse($students, $request);
         // // return dd($students);
-        return APIHelper::makeAPIResponse(true, true, config('validationMessages.success.action'), $students, config('statusCodes.HTTP_CODE_SUCCESS'));
+
     }
 
     // to store data
     public function store(Request $request)
     {
         $apiHelper          = new APIHelper();
+        $model              = new Student();
         // validation schema to validate request and return error messages
         $validation_schema  = config('validationSchemas.student.store');
 
@@ -71,7 +118,7 @@ class StudentController extends Controller
         $student            = Student::create($requestData);
         $student            = $student->toArray();
         if ($student) {
-            return APIHelper::makeAPIResponse(true, false, config('validationMessages.success.store'), $student, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, false, config('validationMessages.success.store'), $model, APIHelper::HTTP_CODE_SUCCESS);
         } else {
             return APIHelper::makeAPIResponse(false, false, config('validationMessages.failed.store'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
         }

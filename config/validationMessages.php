@@ -1,65 +1,57 @@
 <?php
 
 return [
-    "test_response"           => "This is a Test response",
-    "required"                => "This field is required",
-    "filled"                  => "This field must have a value",
+    "test_response"            => "This is a Test response",
+    "required"                 => "This field is required",
+    "filled"                   => "This field must have a value",
 
     "success"   => [
-        "success"             => "Success",
-        "store"               => "Data stored successfully",
-        "update"              => "Data updated successfully",
-        "delete"              => "Data deleted successfully",
-
+        "success"              => "Success",
+        "store"                => "Data stored successfully",
+        "update"               => "Data updated successfully",
+        "delete"               => "Data deleted successfully",
         "action"               => "Action completed successfully",
     ],
 
     "failed"    => [
-        "store"               => "Data failed to store",
-        "update"              => "Data failed to update",
-        "delete"              => "Data failed to delete",
-
+        "delete"               => "Data failed to delete",
+        "store"                => "Data failed to store",
+        "update"               => "Data failed to update",
         "action"               => "Action failed",
     ],
 
     "invalid"   => [
-        "store"               => "Invalid data to store",
-        "update"              => "Invalid data to update",
-        "delete"              => "Invalid data to delete",
-
+        "store"                => "Invalid data to store",
+        "update"               => "Invalid data to update",
+        "delete"               => "Invalid data to delete",
         "action"               => "Invalid action",
-
         "email"                => "Invalid email address",
         "phone"                => "Invalid phone number",
         "age"                  => "Invalid age",
         "date"                 => "Invalid date",
         "numeric"              => "Invalid number",
         "regex"                => "Invalid format",
-
         "startDate"            => "Invalid start date",
         "endDate"              => "Invalid end date",
-
         "page"                 => "Invalid page number",
         "limit"                => "Invalid limit",
     ],
 
     "not_found" => [
-        "store"               => "Data not found to store",
-        "update"              => "Data not found to update",
-        "retrieve"            => "Data not found to retrieve",
-        "delete"              => "Data not found to delete",
-
+        "store"                => "Data not found to store",
+        "update"               => "Data not found to update",
+        "retrieve"             => "Data not found to retrieve",
+        "delete"               => "Data not found to delete",
         "student"              => "Student not found",
         "teacher"              => "Teacher not found",
         "department"           => "Department not found",
         "course"               => "Course not found",
-
         "page"                 => "Page not found",
     ],
 
     "exist"     => [
-        "store"               => "Data already exist, nothing to store",
-        "update"              => "Data already exist, nothing to update",
+        "store"                => "Data already exist, nothing to store",
+        "update"               => "Data already exist, nothing to update",
     ],
 
     "regex"     => [
