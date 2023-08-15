@@ -36,57 +36,109 @@ class APIHelper
      * @param int $limit
      */
 
-    public static function makeAPIResponse($status = true, $paginated = false, $message = "success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
+    public static function search($request, $model)
     {
-        // $apiHelper is not used because the function is static, which means it can be called without creating an instance of the class first
-        // only place where you have to create an instance of the class first is when you want to call a non-static function like paginateResponse
-        // paginate response is non
-        // $apiHelper        = new APIHelper();
-        $refinedData      = self::getRefinedData($data);
-        $response         = self::getResponse($refinedData, $status, $message, $status_code);
-        if ($paginated) {
-            $paginatedData      = APIHelper::paginateResponse($refinedData, request());
-            $response["data"]   = $paginatedData;
+        $params = self::getSearchParams($request);
+
+        $startDate = $params['startDate'];
+        $endDate   = $params['endDate'];
+        $course    = $params['course'];
+
+
+        if ($course && $startDate && $endDate) {
+            // get all students between startDate and endDate for the course
+            $students = $model->where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
+        } else if ($startDate && $endDate && $startDate < $endDate) {
+            // get all students between startDate and endDate
+            $students = $model->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
+        } else if ($course) {
+            $students = $model->where('course', $course)->get()->toArray();
         } else {
-            $response["data"]   = $refinedData;
+            $students = $model->all()->toArray();
         }
-        return response()->json($response, $status_code);
+        $searchResult = $students;
+
+        return $searchResult;
     }
 
-    // Used Carbon extension to format date
-    // REF: https://carbon.nesbot.com/docs/
-    public static function getRefinedData($data)
+    public static function createSearchQuery($query)
     {
-        $refinedData = $data;
-        // fix Invalid argument supplied for foreach() error
-        if (!is_array($refinedData)) {
-            return $refinedData;
+
+        $startDateKey = config('constants.search.startDate');
+        $endDateKey   = config('constants.search.endDate');
+        $courseKey    = config('constants.search.course');
+
+        // get keys from formats.php
+        $startDateKey = (config('constants.search.startDate'));
+
+        // switch case 
+        switch ($query) {
+
+                // if query contains startDateKey and endDateKey and courseKey
+            case (isset($query[$startDateKey]) && isset($query[$endDateKey]) && isset($query[$courseKey])):
+                $query->where($courseKey, $query[$courseKey])->whereBetween('created_at', [$query[$startDateKey], $query[$endDateKey]]);
+                break;
         }
 
-        foreach ($refinedData as $key => $value) {
-            if (isset($value["created_at"])) {
-                $refinedData[$key]["created_at"] = Carbon::parse($value["created_at"])->format('Y-m-d H:i:s');
-            }
-            if (isset($value["updated_at"])) {
-                $refinedData[$key]["updated_at"] = Carbon::parse($value["updated_at"])->format('Y-m-d H:i:s');
-            }
+        if (isset($query[$startDateKey]) && isset($query[$endDateKey])) {
+            $query->whereBetween('created_at', [$query[$startDateKey], $query[$endDateKey]]);
         }
-        return $refinedData;
+        return $query;
     }
-    //getStudentData function to retrieve data from request
+
+    public static function getSearchParams($request)
+    {
+
+        $startDateKey = config('constants.search.startDate');
+        $endDateKey   = config('constants.search.endDate');
+        $courseKey    = config('constants.search.course');
+
+        $params = [
+            $startDateKey => $request->startDate,
+            $endDateKey   => $request->endDate,
+            $courseKey    => $request->course,
+        ];
+        return $params;
+    }
+
     public function getStoreStudentData($request)
     {
+        // LAST LAST EDIT
+        $nameKey        = config('constants.common.name');
+        $emailKey       = config('constants.common.email');
+        $phoneKey       = config('constants.common.phone');
+        $ageKey         = config('constants.common.age');
+        $created_atKey  = config('constants.timestamp.created_at');
+        $updated_atKey  = config('constants.timestamp.updated_at');
+        $dateTimeFormat = config('formats.dateTime');
+
+        $constants      = config('constants');
+
         $requestData = [
-            'name'       => $request->name,
-            'email'      => $request->email,
-            'phone'      => $request->phone,
-            'age'        => $request->age,
+            $constants['common']['name']       => $request->name,
+            $emailKey      => $request->email,
+            $phoneKey      => $request->phone,
+            $ageKey        => $request->age,
             // stored in Y-m-d H:i:s format
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
+            $created_atKey => date($dateTimeFormat),
+            $updated_atKey => date($dateTimeFormat),
         ];
         return $requestData;
+
+        // $constants = config('constants');
+
+        // $requestData = [
+        //     $constants['common']['name']       => $request->name,
+        //     $constants['common']['email']      => $request->email,
+        //     $constants['common']['phone']      => $request->phone,
+        //     $constants['common']['age']        => $request->age,
+        //     // stored in Y-m-d H:i:s format
+        //     $constants['timestamp']['created_at'] => date($constants['formats']['dateTime']),
+        //     $constants['timestamp']['updated_at'] => date($constants['formats']['dateTime']),
+        // ];
+        // return $requestData;
     }
+
     public function getupdateStudentData($request)
     {
         $requestData = $request->only([
@@ -108,7 +160,7 @@ class APIHelper
         return $oldValues;
     }
 
-    public static function getResponse($data, $status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
+    public static function createResponseHead($status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
     {
         $response = [
             "success"     => $status,
@@ -118,81 +170,54 @@ class APIHelper
         return $response;
     }
 
-    public static function getPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
+    public static function createResponseData($data)
     {
-        $response = [
+        $dataArray = $data->toArray();
+        $responseData = self::getRefinedData($dataArray);
+        return $responseData;
+    }
+
+    public static function createPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
+    {
+        $paginatedResponse = [
             "data"      => $data,
             "total"     => $total,
             "page"      => $page,
             "limit"     => $limit,
         ];
-        return $response;
-    }
-
-    public static function paginateResponse($data, $request, $limit = null, $page = null)
-    {
-        if ($data == null || empty($data)) {
-            return $data = [];
-        }
-        // get total items if data is not empty
-        $page            = $request->page;
-        $limit           = $request->limit;
-        $total           = count($data);
-        // if total is 0, return empty array
-        if ($total == 0) {
-            return $data = [];
-        }
-        if ($page == 0) {
-            $page = 1;
-        }
-        // fix division by zero
-        if ($limit == 0) {
-            return $data;
-        }
-        if ($limit == 1) {
-            return $data;
-        }
-        if ($page > ceil($total / $limit)) {
-            return config('validationMessages.not_found.page');
-        }
-        if ($limit > $total) {
-            return config('validationMessages.invalid.limit');
-        }
-        // if page is less than 1, return current page
-        // paginator::resolvecurrentpage() returns the current page
-        $page           = $page ?: (Paginator::resolveCurrentPage() ?: 1);
-        $currentPage    = $page;
-        $offset         = ($currentPage * $limit) - $limit;
-        // array slice to get the items to display
-        $itemsToShow    = array_slice($data, $offset, $limit);
-        // return dd($itemsToShow, $total, $limit);
-        // if there is only 1 item, return it as an array
-        if (count($itemsToShow) == 1) {
-            $itemsToShow = $data;
-        }
-        // $apiHelper       = new APIHelper();
-        $paginatedResponse         = self::getPaginatedResponse($itemsToShow, $total, $page, $limit);
         return $paginatedResponse;
     }
 
-    // MAKE API DATA UPDATE RESPONSE
-    public static function makeAPIUpdateResponse($status = true, $message = "Success", $data = null, $changes = null, $status_code = self::HTTP_CODE_SUCCESS)
+    public static function createPaginatedResponseData($request, $model)
     {
-        // $apiHelper        = new APIHelper();
-        $refinedData      = self::getRefinedData($data);
-        $response         = self::getResponse($refinedData, $status, $message, $status_code);
-        if ($data != null || is_array($refinedData)) {
-            $response["data"] = $refinedData;
-        }
-        if ($changes != null || is_array($changes)) {
-            $response["changes"] = $changes;
-        }
-        // make response
-        return response()->json($response, $status_code);
+        // custom pagination at database level using limit and offset
+        $requestParams = self::getPaginationParams($request);
+        $page   = $requestParams['page'];
+        $limit  = $requestParams['limit'];
+        $offset = $requestParams['offset'];
+        // get paginated data
+        $paginatedData = $model::query()->limit($limit)->offset($offset)->get()->toArray();
+        $total = $model::count();
+        // return paginated response
+        $paginatedResponse = self::createPaginatedResponse($paginatedData, $total, $page, $limit);
+        // format dates
+        // $paginatedResponse = self::getRefinedData($paginatedResponse);
+        return $paginatedResponse;
     }
 
-    // REQUEST VALIDATION FOR CREATE AND UPDATE
-    // Taken and modified from: MFAISAA-BFF\app\Helpers\APIHelper.php
+    public static function getPaginationParams($request)
+    {
+        $page  = $request->page ?? 1;
+        $limit = $request->limit ?? 3;
+        $offset = ($page - 1) * $limit;
+        $requestParams = [
+            'page'   => $page,
+            'limit'  => $limit,
+            'offset' => $offset,
+        ];
+        return $requestParams;
+    }
+
     public static function validateRequest($schema, $request, $type = 'insert')
     {
         // Get schema keys into a array (for validation)
@@ -207,39 +232,74 @@ class APIHelper
             $input = $request->only($schema_keys);
         }
 
-        // // Validate data fields against schema
+        // // Validate data fields against schema to check if they are valid
         $validator = Validator::make($input, $schema);
 
-        // // OLD VALIDATOR which uses the errors() method
-        // if ($validator->fails()) {
-        //     // Return validation errors, if something went wrong
-        //     if ($validator->fails()) {
-        //         return ['errors' => true, 'error_messages' => $validator->errors()];
-        //     }
-        // }
-
         if ($validator->fails()) {
-            // Get validation messages for the regex rule from the validation messages config file
             $validationMessages = config('validationMessages.regex');
             $errors = $validator->errors()->getMessages();
-
-            // Iterate over the errors array and get the validation message for each error
             foreach ($errors as $key => $value) {
                 $errors[$key] = $validationMessages[$key] ?? $value;
             }
-
             return [
                 'errors'            => true,
                 'error_messages'    => $errors,
             ];
         }
-
-
         return ['errors' => false, 'data' => $input];
     }
 
-    public static function checkRequest($request)
+    public static function getRefinedData($data)
     {
-        // TODO: Check whether the request is filtering dates, course, or date
+        $refinedData = $data;
+        // fix Invalid argument supplied for foreach() error
+        if (!is_array($refinedData)) {
+            return $refinedData;
+        }
+        // if data is array, format dates
+        if (isset($refinedData['data'])) {
+            // $refinedData['data'] = self::formatDates($refinedData['data'], config('formats.dateTime'));
+            $refinedData['data'] = self::formatDates($refinedData['data'], config('formats.dateTime'));
+        }
+
+        // $refinedData = self::formatDates($refinedData, config('formats.dateTime'));
+        return $refinedData;
+    }
+
+    public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s', $datesToFormat = ['created_at', 'updated_at'])
+    {
+        // fix Invalid argument supplied for foreach() error
+        // if (!is_array($data)) {
+        //     return $data;
+        // }
+        // cannot be inside make api response
+
+        // DB SORT 
+        // filter, offset, limit
+        foreach ($data as $key => $value) {
+            foreach ($datesToFormat as $date) {
+                // $data[$key]['created_at'] = 'test';
+                $data[$key][$date] = Carbon::parse($value[$date])->format($dateFormat);
+            }
+        }
+        // return $data;
+        return $data;
+    }
+
+    public static function makeAPIResponse($status = true, $paginated = false, $message = "success", $model = null, $status_code = self::HTTP_CODE_SUCCESS)
+    {
+        $response = self::createResponseHead($status, $message, $status_code);
+
+        if ($paginated) {
+            // get paginated data from database
+            $response['data']     = self::createPaginatedResponseData(request(), $model);
+        } else {
+            $data = $model::all();
+            $response['data']     = self::createResponseData($data);
+        }
+
+        // $refinedResponse = self::getRefinedData($response);
+        // return response()->json($refinedResponse, $status_code);
+        return response()->json($response, $status_code);
     }
 }
