@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use App\Constants\StudentConstants;
+use App\Constants\Constants;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -47,14 +49,14 @@ class APIHelper
 
         if ($course && $startDate && $endDate) {
             // get all students between startDate and endDate for the course
-            $students = $model->where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
+            $students = $model->where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get();
         } else if ($startDate && $endDate && $startDate < $endDate) {
             // get all students between startDate and endDate
-            $students = $model->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
+            $students = $model->whereBetween('created_at', [$startDate, $endDate])->get();
         } else if ($course) {
-            $students = $model->where('course', $course)->get()->toArray();
+            $students = $model->where('course', $course)->get();
         } else {
-            $students = $model->all()->toArray();
+            $students = $model->all();
         }
         $searchResult = $students;
 
@@ -103,49 +105,26 @@ class APIHelper
 
     public function getStoreStudentData($request)
     {
-        // LAST LAST EDIT
-        $nameKey        = config('constants.common.name');
-        $emailKey       = config('constants.common.email');
-        $phoneKey       = config('constants.common.phone');
-        $ageKey         = config('constants.common.age');
-        $created_atKey  = config('constants.timestamp.created_at');
-        $updated_atKey  = config('constants.timestamp.updated_at');
-        $dateTimeFormat = config('formats.dateTime');
-
-        $constants      = config('constants');
-
         $requestData = [
-            $constants['common']['name']       => $request->name,
-            $emailKey      => $request->email,
-            $phoneKey      => $request->phone,
-            $ageKey        => $request->age,
-            // stored in Y-m-d H:i:s format
-            $created_atKey => date($dateTimeFormat),
-            $updated_atKey => date($dateTimeFormat),
+            StudentConstants::COMMON['name']          => $request->name,
+            StudentConstants::COMMON['email']         => $request->email,
+            StudentConstants::COMMON['phone']         => $request->phone,
+            StudentConstants::COMMON['age']           => $request->age,
+            StudentConstants::COMMON['course']        => $request->course,
+            StudentConstants::TIMESTAMP['created_at'] => date(StudentConstants::DATE_TIME_FORMAT),
+            StudentConstants::TIMESTAMP['updated_at'] => date(StudentConstants::DATE_TIME_FORMAT),
         ];
         return $requestData;
-
-        // $constants = config('constants');
-
-        // $requestData = [
-        //     $constants['common']['name']       => $request->name,
-        //     $constants['common']['email']      => $request->email,
-        //     $constants['common']['phone']      => $request->phone,
-        //     $constants['common']['age']        => $request->age,
-        //     // stored in Y-m-d H:i:s format
-        //     $constants['timestamp']['created_at'] => date($constants['formats']['dateTime']),
-        //     $constants['timestamp']['updated_at'] => date($constants['formats']['dateTime']),
-        // ];
-        // return $requestData;
     }
 
     public function getupdateStudentData($request)
     {
         $requestData = $request->only([
-            'name',
-            'email',
-            'phone',
-            'age',
+            StudentConstants::COMMON['name'],
+            StudentConstants::COMMON['email'],
+            StudentConstants::COMMON['phone'],
+            StudentConstants::COMMON['age'],
+            StudentConstants::COMMON['course'],
         ]);
         return $requestData;
     }
@@ -163,9 +142,9 @@ class APIHelper
     public static function createResponseHead($status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
     {
         $response = [
-            "success"     => $status,
-            "status_code" => $status_code,
-            "message"     => $message,
+            Constants::RESPONSE['status']      => $status,
+            Constants::RESPONSE['message']     => $message,
+            Constants::RESPONSE['status_code'] => $status_code,
         ];
         return $response;
     }
@@ -180,40 +159,59 @@ class APIHelper
     public static function createPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
     {
         $paginatedResponse = [
-            "data"      => $data,
-            "total"     => $total,
-            "page"      => $page,
-            "limit"     => $limit,
+            Constants::RESPONSE['data']   => $data,
+            Constants::RESPONSE['total']  => $total,
+            Constants::RESPONSE['page']   => $page,
+            Constants::RESPONSE['limit']  => $limit,
         ];
         return $paginatedResponse;
     }
 
-    public static function createPaginatedResponseData($request, $model)
+    public static function createPaginatedResponseData($data, $request)
     {
-        // custom pagination at database level using limit and offset
-        $requestParams = self::getPaginationParams($request);
-        $page   = $requestParams['page'];
-        $limit  = $requestParams['limit'];
-        $offset = $requestParams['offset'];
-        // get paginated data
-        $paginatedData = $model::query()->limit($limit)->offset($offset)->get()->toArray();
-        $total = $model::count();
-        // return paginated response
-        $paginatedResponse = self::createPaginatedResponse($paginatedData, $total, $page, $limit);
-        // format dates
-        // $paginatedResponse = self::getRefinedData($paginatedResponse);
+        $paginatedData = self::getPaginatedData($data, $request);
+        $paginatedResponse = self::createPaginatedResponse($paginatedData);
         return $paginatedResponse;
     }
 
+    public static function getPaginatedData($data, $request)
+    {
+        $requestParams = self::getPaginationParams($request);
+        $page          = $requestParams[Constants::PAGINATION['page']];
+        $limit         = $requestParams[Constants::PAGINATION['limit']];
+        $offset        = $requestParams[Constants::PAGINATION['offset']];
+
+
+
+        return $paginatedData;
+    }
+    // public static function getPaginatedData($data, $request, $model)
+    // {
+    //     // custom pagination at database level using limit and offset
+    //     $requestParams = self::getPaginationParams($request);
+    //     $page           = $requestParams[Constants::PAGINATION['page']];
+    //     $limit          = $requestParams[Constants::PAGINATION['limit']];
+    //     $offset         = $requestParams[Constants::PAGINATION['offset']];
+
+    //     $paginatedData  = $model->limit($limit)->offset($offset)->get()->toArray();
+    //     $total          = $model::count();
+    //     // return paginated response
+    //     $paginatedResponse = self::createPaginatedResponse($paginatedData, $total, $page, $limit);
+    //     // format dates
+    //     // $paginatedResponse = self::getRefinedData($paginatedResponse);
+    //     // return $paginatedData;
+    //     return $paginatedResponse;
+    // }
+
     public static function getPaginationParams($request)
     {
-        $page  = $request->page ?? 1;
-        $limit = $request->limit ?? 3;
-        $offset = ($page - 1) * $limit;
+        $page       = $request->page ?? 1;
+        $limit      = $request->limit ?? 3;
+        $offset     = ($page - 1) * $limit;
         $requestParams = [
-            'page'   => $page,
-            'limit'  => $limit,
-            'offset' => $offset,
+            Constants::PAGINATION['page']   => $page,
+            Constants::PAGINATION['limit']  => $limit,
+            Constants::PAGINATION['offset'] => $offset,
         ];
         return $requestParams;
     }
