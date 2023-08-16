@@ -90,10 +90,9 @@ class APIHelper
 
     public static function getSearchParams($request)
     {
-
-        $startDateKey = config('constants.search.startDate');
-        $endDateKey   = config('constants.search.endDate');
-        $courseKey    = config('constants.search.course');
+        $startDateKey = Constants::SEARCH_PARAM_START_DATE;
+        $endDateKey   = Constants::SEARCH_PARAM_END_DATE;
+        $courseKey    = StudentConstants::STUDENT_COURSE;
 
         $params = [
             $startDateKey => $request->startDate,
@@ -106,13 +105,13 @@ class APIHelper
     public function getStoreStudentData($request)
     {
         $requestData = [
-            StudentConstants::COMMON['name']          => $request->name,
-            StudentConstants::COMMON['email']         => $request->email,
-            StudentConstants::COMMON['phone']         => $request->phone,
-            StudentConstants::COMMON['age']           => $request->age,
-            StudentConstants::COMMON['course']        => $request->course,
-            StudentConstants::TIMESTAMP['created_at'] => date(StudentConstants::DATE_TIME_FORMAT),
-            StudentConstants::TIMESTAMP['updated_at'] => date(StudentConstants::DATE_TIME_FORMAT),
+            Constants::COMMON_NAME              => $request->name,
+            Constants::COMMON_EMAIL             => $request->email,
+            Constants::COMMON_PHONE             => $request->phone,
+            Constants::COMMON_AGE               => $request->age,
+            StudentConstants::STUDENT_COURSE    => $request->course,
+            Constants::COMMON_CREATED_AT        => date(Constants::DATE_TIME_FORMAT),
+            Constants::COMMON_UPDATED_AT        => date(Constants::DATE_TIME_FORMAT),
         ];
         return $requestData;
     }
@@ -120,11 +119,11 @@ class APIHelper
     public function getupdateStudentData($request)
     {
         $requestData = $request->only([
-            StudentConstants::COMMON['name'],
-            StudentConstants::COMMON['email'],
-            StudentConstants::COMMON['phone'],
-            StudentConstants::COMMON['age'],
-            StudentConstants::COMMON['course'],
+            Constants::COMMON_NAME,
+            Constants::COMMON_EMAIL,
+            Constants::COMMON_PHONE,
+            Constants::COMMON_AGE,
+            StudentConstants::STUDENT_COURSE,
         ]);
         return $requestData;
     }
@@ -142,50 +141,63 @@ class APIHelper
     public static function createResponseHead($status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
     {
         $response = [
-            Constants::RESPONSE['status']      => $status,
-            Constants::RESPONSE['message']     => $message,
-            Constants::RESPONSE['status_code'] => $status_code,
+            Constants::RESPONSE_STATUS_KEY      => $status,
+            Constants::RESPONSE_MESSAGE_KEY     => $message,
+            Constants::RESPONSE_STATUS_CODE_KEY => $status_code,
         ];
         return $response;
     }
 
     public static function createResponseData($data)
     {
-        $dataArray = $data->toArray();
-        $responseData = self::getRefinedData($dataArray);
+
+        $formattedData = self::formatDates($data);
+        $responseData = [
+            Constants::RESPONSE_DATA_KEY => $formattedData,
+        ];
         return $responseData;
     }
 
+
+    public static function createPaginatedResponseData($query, $request)
+    {
+        $limit = $request->limit;
+        $page = $request->page;
+        $total = $query->count();
+
+        // USE IF CONDITIONS TO CHECK LIMIT AND PAGE
+        //
+        // If conditions
+        //
+        // END IF CONDITIONS
+
+        $responseData = $query->limit($limit)->offset(($page - 1) * $limit)->get();
+        $paginatedResponseData = self::createPaginatedResponse($responseData, $total, $page, $limit);
+        return $paginatedResponseData;
+    }
+
+    // public static function getPaginatedData($query, $request)
+    // {
+    //     // does not work because data is a collection here
+    //     $limit = $request->has('limit') ? $request->limit : Constants::DEFAULT_LIMIT;
+    //     $page = $request->has('page') ? $request->page : Constants::DEFAULT_PAGE;
+    //     $total = $query->count();
+
+    //     $responseData = $query->limit($limit)->offset(($page - 1) * $limit);
+    //     $paginatedResponse = self::createPaginatedResponse($responseData, $total, $page, $limit);
+    //     return $paginatedResponse;
+    // }
+
     public static function createPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
     {
+        $formattedData = self::formatDates($data);
         $paginatedResponse = [
-            Constants::RESPONSE['data']   => $data,
-            Constants::RESPONSE['total']  => $total,
-            Constants::RESPONSE['page']   => $page,
-            Constants::RESPONSE['limit']  => $limit,
+            Constants::RESPONSE_DATA_KEY     => $formattedData,
+            Constants::RESPONSE_TOTAL_KEY    => $total,
+            Constants::RESPONSE_PAGE_KEY     => $page,
+            Constants::RESPONSE_LIMIT_KEY    => $limit,
         ];
         return $paginatedResponse;
-    }
-
-    public static function createPaginatedResponseData($data, $request)
-    {
-        $paginatedData = self::getPaginatedData($data, $request);
-        $paginatedResponse = self::createPaginatedResponse($paginatedData);
-        return $paginatedResponse;
-    }
-
-    public static function getPaginatedData($data, $request)
-    {
-        $requestParams = self::getPaginationParams($request);
-        $page          = $requestParams[Constants::PAGINATION['page']];
-        $limit         = $requestParams[Constants::PAGINATION['limit']];
-        $offset        = $requestParams[Constants::PAGINATION['offset']];
-        // does not work because data is a collection here
-        $paginatedData = $data->limit($limit)->offset($offset)->get()->toArray();
-
-
-
-        return $paginatedData;
     }
     // public static function getPaginatedData($data, $request, $model)
     // {
@@ -211,9 +223,9 @@ class APIHelper
         $limit      = $request->limit ?? 3;
         $offset     = ($page - 1) * $limit;
         $requestParams = [
-            Constants::PAGINATION['page']   => $page,
-            Constants::PAGINATION['limit']  => $limit,
-            Constants::PAGINATION['offset'] => $offset,
+            Constants::RESPONSE_PAGE_KEY   => $page,
+            Constants::RESPONSE_LIMIT_KEY  => $limit,
+            Constants::PAGINATION_OFFSET   => $offset,
         ];
         return $requestParams;
     }
@@ -249,33 +261,10 @@ class APIHelper
         return ['errors' => false, 'data' => $input];
     }
 
-    public static function getRefinedData($data)
-    {
-        $refinedData = $data;
-        // fix Invalid argument supplied for foreach() error
-        if (!is_array($refinedData)) {
-            return $refinedData;
-        }
-        // if data is array, format dates
-        if (isset($refinedData['data'])) {
-            // $refinedData['data'] = self::formatDates($refinedData['data'], config('formats.dateTime'));
-            $refinedData['data'] = self::formatDates($refinedData['data'], config('formats.dateTime'));
-        }
-
-        // $refinedData = self::formatDates($refinedData, config('formats.dateTime'));
-        return $refinedData;
-    }
-
     public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s', $datesToFormat = ['created_at', 'updated_at'])
     {
-        // fix Invalid argument supplied for foreach() error
-        // if (!is_array($data)) {
-        //     return $data;
-        // }
-        // cannot be inside make api response
-
-        // DB SORT 
-        // filter, offset, limit
+        // Cannot use object of type array fix
+        $data = json_decode(json_encode($data), true);
         foreach ($data as $key => $value) {
             foreach ($datesToFormat as $date) {
                 // $data[$key]['created_at'] = 'test';
@@ -286,20 +275,14 @@ class APIHelper
         return $data;
     }
 
-    public static function makeAPIResponse($status = true, $paginated = false, $message = "success", $model = null, $status_code = self::HTTP_CODE_SUCCESS)
+    public static function makeAPIResponse($status = true, $message = "success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
     {
         $response = self::createResponseHead($status, $message, $status_code);
 
-        if ($paginated) {
-            // get paginated data from database
-            $response['data']     = self::createPaginatedResponseData(request(), $model);
-        } else {
-            $data = $model::all();
-            $response['data']     = self::createResponseData($data);
+        if ($data != null || is_array($data)) {
+            $response["data"] = $data;
         }
 
-        // $refinedResponse = self::getRefinedData($response);
-        // return response()->json($refinedResponse, $status_code);
         return response()->json($response, $status_code);
     }
 }

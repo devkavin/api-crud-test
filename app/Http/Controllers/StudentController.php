@@ -14,84 +14,26 @@ class StudentController extends Controller
     // test get function
     public function test()
     {
-        return APIHelper::makeAPIResponse(false, false, config('validationMessages.Test_response'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
+        return APIHelper::makeAPIResponse(false, config('validationMessages.Test_response'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
     }
 
     public function index(Request $request)
     {
-        $model = new Student();
+        $query = Student::query();
 
-        // search function, paginate inside the controller.
+        // // if the request has a search parameter
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->whereBetween('created_at', [$search, $search]);
+        }
 
-        // search function
-        $searchResult = APIHelper::search($request, $model);
+        $paginatedSearchData = APIHelper::createPaginatedResponseData($query, $request);
+        // $paginatedSearchData = APIHelper::createResponseData($query->get());
 
-        // format dates
-        $formattedResponseData = APIHelper::formatDates($searchResult);
-        // return $formattedResponseData;
+        // $formattedResponseData = APIHelper::formatDates($paginatedSearchData, StudentConstants::DATE_TIME_FORMAT);
 
-        $paginateResponse     = APIHelper::createPaginatedResponseData($formattedResponseData, $request);
-
-
-        // return $searchResult;
-        return $paginateResponse;
-
-
-        // paginate search result
-
-
-
-        // return $responseData;
-
-        // save result to $response
-
-        // return $response
-
-
-
-
-        //
-        // only the final stage of the variables should be sent to makeAPIResponse
-        //
-        return APIHelper::makeAPIResponse(true, true, config('validationMessages.success.action'), $model, config('statusCodes.HTTP_CODE_SUCCESS'));
-        // if startDate and endDate are not null, and startDate is less than endDate
-        // && is the AND operator
-        // TODO: create a custom function to check request parameters
-        // $students = $apiHelper->checkRequest($request);
-        // custom pagination at database level using limit and offset
-        // get limit and page from request
-        // $limit = $request->limit;
-        // $page  = $request->page;
-
-        // // calculate offset
-        // $offset = ($page * $limit) - $limit;
-
-        // // get students
-        // $students = Student::limit($limit)->offset($offset)->get()->toArray();
-        // object name to pass to paginateResponse function
-        // $students = APIHelper::paginateResponse($request, $model);
-        // $students        = Student::all()->toArray();
-        // $refinedStudents = APIHelper::getRefinedData($students);
-        // return $students;
-        // return $refinedStudents;
-
-        // // TODO: create a custom function to check request parameters and use SWITCH CASE instead of if else
-        // if ($course && $startDate && $endDate) {
-        //     // get all students between startDate and endDate for the course
-        //     $students = Student::where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
-        // } else if ($startDate && $endDate && $startDate < $endDate) {
-        //     // get all students between startDate and endDate
-        //     $students = Student::whereBetween('created_at', [$startDate, $endDate])->get()->toArray();
-        // } else if ($course) {
-        //     $students = Student::where('course', $course)->get()->toArray();
-        // } else {
-        //     $students = Student::all()->toArray();
-        // }
-        // $students   = Student::all()->toArray();
-        // // $apiHelper  = new APIHelper();
-        // // $students   = $apiHelper->paginateResponse($students, $request);
-        // // return dd($students);
-
+        return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $paginatedSearchData, config('statusCodes.HTTP_CODE_SUCCESS'));
+        // return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $formattedResponseData, config('statusCodes.HTTP_CODE_SUCCESS'));
     }
 
     // to store data
