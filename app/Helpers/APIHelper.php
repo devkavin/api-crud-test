@@ -65,17 +65,12 @@ class APIHelper
 
     public static function createSearchQuery($query)
     {
-
-        $startDateKey = config('constants.search.startDate');
-        $endDateKey   = config('constants.search.endDate');
-        $courseKey    = config('constants.search.course');
-
-        // get keys from formats.php
-        $startDateKey = (config('constants.search.startDate'));
+        $startDateKey = Constants::SEARCH_PARAM_START_DATE;
+        $endDateKey   = Constants::SEARCH_PARAM_END_DATE;
+        $courseKey    = StudentConstants::STUDENT_COURSE;
 
         // switch case 
         switch ($query) {
-
                 // if query contains startDateKey and endDateKey and courseKey
             case (isset($query[$startDateKey]) && isset($query[$endDateKey]) && isset($query[$courseKey])):
                 $query->where($courseKey, $query[$courseKey])->whereBetween('created_at', [$query[$startDateKey], $query[$endDateKey]]);
@@ -90,14 +85,10 @@ class APIHelper
 
     public static function getSearchParams($request)
     {
-        $startDateKey = Constants::SEARCH_PARAM_START_DATE;
-        $endDateKey   = Constants::SEARCH_PARAM_END_DATE;
-        $courseKey    = StudentConstants::STUDENT_COURSE;
-
         $params = [
-            $startDateKey => $request->startDate,
-            $endDateKey   => $request->endDate,
-            $courseKey    => $request->course,
+            Constants::SEARCH_PARAM_START_DATE => $request->startDate,
+            Constants::SEARCH_PARAM_END_DATE   => $request->endDate,
+            StudentConstants::STUDENT_COURSE   => $request->course,
         ];
         return $params;
     }
@@ -150,11 +141,11 @@ class APIHelper
 
     public static function createResponseData($data)
     {
-
-        $formattedData = self::formatDates($data);
-        $responseData = [
-            Constants::RESPONSE_DATA_KEY => $formattedData,
-        ];
+        $formattedData  = self::formatDates($data);
+        $responseData   = $formattedData;
+        // $responseData  = [
+        //     Constants::RESPONSE_DATA_KEY => $formattedData,
+        // ];
         return $responseData;
     }
 
@@ -199,23 +190,6 @@ class APIHelper
         ];
         return $paginatedResponse;
     }
-    // public static function getPaginatedData($data, $request, $model)
-    // {
-    //     // custom pagination at database level using limit and offset
-    //     $requestParams = self::getPaginationParams($request);
-    //     $page           = $requestParams[Constants::PAGINATION['page']];
-    //     $limit          = $requestParams[Constants::PAGINATION['limit']];
-    //     $offset         = $requestParams[Constants::PAGINATION['offset']];
-
-    //     $paginatedData  = $model->limit($limit)->offset($offset)->get()->toArray();
-    //     $total          = $model::count();
-    //     // return paginated response
-    //     $paginatedResponse = self::createPaginatedResponse($paginatedData, $total, $page, $limit);
-    //     // format dates
-    //     // $paginatedResponse = self::getRefinedData($paginatedResponse);
-    //     // return $paginatedData;
-    //     return $paginatedResponse;
-    // }
 
     public static function getPaginationParams($request)
     {
@@ -248,8 +222,8 @@ class APIHelper
         $validator = Validator::make($input, $schema);
 
         if ($validator->fails()) {
-            $validationMessages = config('validationMessages.regex');
-            $errors = $validator->errors()->getMessages();
+            $validationMessages     = config('validationMessages.regex');
+            $errors                 = $validator->errors()->getMessages();
             foreach ($errors as $key => $value) {
                 $errors[$key] = $validationMessages[$key] ?? $value;
             }
@@ -265,22 +239,26 @@ class APIHelper
     {
         // Cannot use object of type array fix
         $data = json_decode(json_encode($data), true);
+        // Trying to access array offset on value of type int fix
+
         foreach ($data as $key => $value) {
             foreach ($datesToFormat as $date) {
                 // $data[$key]['created_at'] = 'test';
                 $data[$key][$date] = Carbon::parse($value[$date])->format($dateFormat);
             }
         }
-        // return $data;
         return $data;
     }
 
-    public static function makeAPIResponse($status = true, $message = "success", $data = null, $status_code = self::HTTP_CODE_SUCCESS)
+    public static function makeAPIResponse($status = true, $message = "success", $data = null, $status_code = self::HTTP_CODE_SUCCESS, $changes = null)
     {
         $response = self::createResponseHead($status, $message, $status_code);
 
         if ($data != null || is_array($data)) {
             $response["data"] = $data;
+        }
+        if ($changes != null || is_array($changes)) {
+            $response["changes"] = $changes;
         }
 
         return response()->json($response, $status_code);
