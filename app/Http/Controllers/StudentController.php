@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\StudentConstants;
+use App\Constants\Constants;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Helpers\APIHelper;
@@ -28,7 +30,7 @@ class StudentController extends Controller
         $formattedResponseData = APIHelper::formatDates($searchResult);
         // return $formattedResponseData;
 
-        $paginateResponse     = APIHelper::createPaginatedResponseData($formattedResponseData, $model);
+        $paginateResponse     = APIHelper::createPaginatedResponseData($formattedResponseData, $request);
 
 
         // return $searchResult;
