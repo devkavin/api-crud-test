@@ -180,6 +180,8 @@ class APIHelper
         $page          = $requestParams[Constants::PAGINATION['page']];
         $limit         = $requestParams[Constants::PAGINATION['limit']];
         $offset        = $requestParams[Constants::PAGINATION['offset']];
+        // does not work because data is a collection here
+        $paginatedData = $data->limit($limit)->offset($offset)->get()->toArray();
 
 
 
