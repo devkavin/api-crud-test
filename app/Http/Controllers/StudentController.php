@@ -90,7 +90,7 @@ class StudentController extends Controller
             $student            = Student::create($requestData);
             $student            = $student->toArray();
 
-            return APIHelper::makeAPIResponse(true, config('validationMessages.success.store'), $student, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, config('validationMessages.success.store'), [], APIHelper::HTTP_CODE_SUCCESS);
         } catch (Exception $e) {
             return APIHelper::makeAPIResponse(false, $e->getMessage(), [], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
