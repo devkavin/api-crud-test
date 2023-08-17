@@ -37,6 +37,9 @@ Route::delete('student/delete/{id}', [StudentController::class, 'destroy']);
 // to search data by name or phone
 Route::get('student/search/{name}', [StudentController::class, 'search']);
 
+// image upload
+Route::post('student/{id}/image', [StudentController::class, 'postImage']);
+
 /**
  * Teacher Routes
  */

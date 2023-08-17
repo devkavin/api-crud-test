@@ -89,7 +89,7 @@ class APIHelper
     {
         $collection = collect($data);
 
-        // Confirm with Dhanuka ayya if it's required to format dates for single record
+        // Confirm with Dhanuka ayya if it's required to format dates for a single record
         // if there is only one record
         if (isset($data['id'])) {
             $collection['created_at'] = Carbon::parse($data['created_at'])->format($dateFormat);
@@ -99,52 +99,39 @@ class APIHelper
             $collection->transform(function ($student) use ($dateFormat) {
                 $student['created_at'] = Carbon::parse($student['created_at'])->format($dateFormat);
                 $student['updated_at'] = Carbon::parse($student['updated_at'])->format($dateFormat);
-                // $student['created_at'] = Carbon::parse($student['created_at'])->format($dateFormat);
-                // $student['updated_at'] = Carbon::parse($student['updated_at'])->format($dateFormat);
                 return $student;
             });
         }
-
         return $collection;
     }
-    // public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s')
-    // {
-    //     foreach ($data as $key => $value) {
-    //         $data[$key]['created_at'] = Carbon::parse($value['created_at'])->format($dateFormat);
-    //         $data[$key]['updated_at'] = Carbon::parse($value['updated_at'])->format($dateFormat);
-    //     }
-    //     return $data;
-    // }
 
     // REF: MFAISAA-BFF\app\Helpers\APIHelper.php
     public static function validateRequest($schema, $request, $type = 'insert')
     {
         // Get schema keys into a array (for validation)
-        $schema_keys = array_keys($schema);
-
-        // If the request is not create, $request will take passed data
-        $input = $request;
-        // Only get full request object when creating
-        // Ignore when doing the update
+        $schema_keys    = array_keys($schema);
+        $input          = $request;
+        // Only get full request object when creating a new record (insert) and remove unnecessary fields (only)
         if ($type == 'insert') {
-            // Remove unnecessary fields from request
             $input = $request->only($schema_keys);
         }
 
-        $validator = Validator::make($input, $schema);
-
+        $validator      = Validator::make($input, $schema);
         if ($validator->fails()) {
             $validationMessages     = config('validationMessages.regex');
             $errors                 = $validator->errors()->getMessages();
             foreach ($errors as $key => $value) {
-                $errors[$key] = $validationMessages[$key] ?? $value;
+                $errors[$key]   = $validationMessages[$key] ?? $value;
             }
             return [
                 'errors'            => true,
                 'error_messages'    => $errors,
             ];
         }
-        return ['errors' => false, 'data' => $input];
+        return [
+            'errors'        => false,
+            'data'          => $input
+        ];
     }
 
     public static function makeAPIResponse($status = true, $message = "success", $data = [], $status_code = self::HTTP_CODE_SUCCESS)
