@@ -35,6 +35,7 @@ class StudentController extends Controller
         // paginate the response
         $responseData           = $query->limit($limit)->offset(($page - 1) * $limit)->get();
         // format the response dates to Y-m-d H:i:s
+        // $responseData           = APIHelper::formatDates($responseData, StudentConstants::DATE_TIME_FORMAT);
         $responseData           = APIHelper::formatDates($responseData->toArray(), StudentConstants::DATE_TIME_FORMAT);
         $paginatedResponseData  = APIHelper::createPaginatedResponse($responseData, $total, $page, $limit);
 
