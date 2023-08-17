@@ -136,20 +136,48 @@ class StudentController extends Controller
             return APIHelper::makeAPIResponse(false, $validator['error_messages'], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
 
-        $student = Student::where('email', $request->email)->first();
-        if ($student) {
-            return APIHelper::makeAPIResponse(false, config('validationMessages.exist.store'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
-        }
+        try {
+            $student = Student::where('email', $request->email)->first();
+            if ($student) {
+                throw new Exception(config('validationMessages.exist.update'));
+            }
 
-        $student = Student::find($id);
-        if ($student) {
+            $student = Student::find($id);
+            if (!$student) {
+                throw new Exception(config('validationMessages.failed.update'));
+            }
+
             $requestData    = $apiHelper->getUpdateStudentData($request);
             $student->update($requestData);
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.update'), [], APIHelper::HTTP_CODE_SUCCESS);
-        } else {
-            return APIHelper::makeAPIResponse(false, config('validationMessages.failed.update'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
+        } catch (Exception $e) {
+            return APIHelper::makeAPIResponse(false, $e->getMessage(), [], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
+    // public function update(Request $request, $id)
+    // {
+    //     $apiHelper          = new APIHelper();
+    //     $validation_schema  = config('validationSchemas.student.update');
+    //     $validator = APIHelper::validateRequest($validation_schema, $request);
+
+    //     if ($validator['errors']) {
+    //         return APIHelper::makeAPIResponse(false, $validator['error_messages'], APIHelper::HTTP_CODE_BAD_REQUEST);
+    //     }
+
+    //     $student = Student::where('email', $request->email)->first();
+    //     if ($student) {
+    //         return APIHelper::makeAPIResponse(false, config('validationMessages.exist.store'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
+    //     }
+
+    //     $student = Student::find($id);
+    //     if ($student) {
+    //         $requestData    = $apiHelper->getUpdateStudentData($request);
+    //         $student->update($requestData);
+    //         return APIHelper::makeAPIResponse(true, config('validationMessages.success.update'), [], APIHelper::HTTP_CODE_SUCCESS);
+    //     } else {
+    //         return APIHelper::makeAPIResponse(false, config('validationMessages.failed.update'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
+    //     }
+    // }
 
     // to delete data
     public function destroy($id)
