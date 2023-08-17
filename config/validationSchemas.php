@@ -12,8 +12,8 @@ return [
             'email'      => 'required|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', // can be optimized (common values)
             'phone'      => 'required|numeric|regex:/^0[0-9]{9,11}$/',
             'age'        => 'required|numeric|digits_between:1,3',
-            // course can only be CS SE, CE, ME, MECH
-            'course'     => 'required|in:CS,SE,CE,ME,MECH'
+            // course must be one of CS SE, CE, ME, MECH
+            'course'     => 'required|in:CS SE,CE,ME,MECH'
         ],
         'update' => [
             //not required because it is not required to be changed
