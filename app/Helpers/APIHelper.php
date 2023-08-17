@@ -84,26 +84,6 @@ class APIHelper
         return $paginatedResponse;
     }
 
-    // public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s')
-    // {
-    //     $data = collect($data);
-    //     // if there is only one item in the collection
-    //     // then it will not be a collection anymore
-    //     // so we need to make it a collection
-    //     // so that we can use the transform method
-    //     // to format the dates
-    //     if ($data->count() == 1) {
-    //         $data = collect([[$data]]);
-    //     }
-    //     $data->transform(function ($item) use ($dateFormat) {
-    //         $item['created_at'] = Carbon::parse($item['created_at'])->format($dateFormat);
-    //         $item['updated_at'] = Carbon::parse($item['updated_at'])->format($dateFormat);
-    //         return $item;
-    //     });
-
-    //     return $data;
-    // }
-
     public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s')
     {
         foreach ($data as $key => $value) {

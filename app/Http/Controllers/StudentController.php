@@ -33,18 +33,9 @@ class StudentController extends Controller
         $page                   = $request->page;
         $total                  = $query->count();
         // paginate the response
-        // $responseData           = $query->limit($limit)->offset(($page - 1) * $limit)->get();
         $responseData           = $query->limit($limit)->offset(($page - 1) * $limit)->get();
-        // // format the response dates to Y-m-d H:i:s
-
-
-        $responseData->transform(function ($student) {
-            $student['created_at'] = Carbon::parse($student['created_at'])->isoFormat('Y-m-d H:i:s'); // '2019-12-02 20:57:00
-            $student['updated_at'] = Carbon::parse($student['updated_at'])->isoFormat('Y-m-d H:i:s'); // '2019-12-02 20:57:00
-            return $student;
-        });
-
-        // $responseData           = APIHelper::formatDates($responseData->get()->toArray(), StudentConstants::DATE_TIME_FORMAT);
+        // format the response dates to Y-m-d H:i:s
+        $responseData           = APIHelper::formatDates($responseData->toArray(), StudentConstants::DATE_TIME_FORMAT);
         $paginatedResponseData  = APIHelper::createPaginatedResponse($responseData, $total, $page, $limit);
 
         return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $paginatedResponseData, config('statusCodes.HTTP_CODE_SUCCESS'));
@@ -69,8 +60,6 @@ class StudentController extends Controller
     {
         $student = Student::find($id);
         if ($student) {
-            $student = $student->toArray();
-            $student = APIHelper::formatDates($student, StudentConstants::DATE_TIME_FORMAT);
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
             return APIHelper::makeAPIResponse(false, config('validationMessages.not_found.retrieve'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
