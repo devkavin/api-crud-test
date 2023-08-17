@@ -61,9 +61,6 @@ class StudentController extends Controller
     {
         $student = Student::find($id);
         if ($student) {
-            // get student data 
-            $student = $student->toArray();
-            // format the response dates to Y-m-d H:i:s
             $student = APIHelper::formatDates($student, StudentConstants::DATE_TIME_FORMAT);
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
