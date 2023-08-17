@@ -19,6 +19,20 @@ class StudentController extends Controller
         return APIHelper::makeAPIResponse(true, config('validationMessages.test_response'), [], config('statusCodes.HTTP_CODE_SUCCESS'));
     }
 
+    public function postImage(Request $request)
+    {
+        $imageFile          = $request->file('image');
+        // ask dhanuka ayya about the file name format
+        // for the time being, current timestamp is used with time()
+        $imageFilename      = time() . '.' . $imageFile->extension();
+        $imageFile->move(public_path('images'), $imageFilename);
+
+        $student            = Student::findOrFail($request->id);
+        $student->image_url = '/images/' . $imageFilename;
+        $student->save();
+        return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
+    }
+
     public function index(Request $request)
     {
         $query = Student::query();
@@ -32,6 +46,9 @@ class StudentController extends Controller
         $limit                  = $request->limit;
         $page                   = $request->page;
         $total                  = $query->count();
+        if ($limit == 0) {
+            return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $query->get(), config('statusCodes.HTTP_CODE_SUCCESS'));
+        }
         // paginate the response
         $responseData           = $query->limit($limit)->offset(($page - 1) * $limit)->get();
         // format the response dates to Y-m-d H:i:s
@@ -41,20 +58,6 @@ class StudentController extends Controller
 
         return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $paginatedResponseData, config('statusCodes.HTTP_CODE_SUCCESS'));
     }
-
-    // public function index(Request $request)
-    // {
-    //     $query = Student::query();
-    //     if ($request->has('search')) {
-    //         $search = $request->search;
-    //         $query->whereBetween('created_at', [$search, $search]);
-    //     }
-    //     // // regular response
-    //     $SearchResponse = APIHelper::createResponseData($query->get());
-    //     $SearchResponse = APIHelper::formatDates($SearchResponse->toArray(), StudentConstants::DATE_TIME_FORMAT);
-
-    //     return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $SearchResponse, config('statusCodes.HTTP_CODE_SUCCESS'));
-    // }
 
     // get student by id
     public function show($id)
