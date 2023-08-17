@@ -38,51 +38,6 @@ class APIHelper
      * @param int $limit
      */
 
-    public static function search($request, $model)
-    {
-        $params = self::getSearchParams($request);
-
-        $startDate = $params['startDate'];
-        $endDate   = $params['endDate'];
-        $course    = $params['course'];
-
-
-        if ($course && $startDate && $endDate) {
-            // get all students between startDate and endDate for the course
-            $students = $model->where('course', $course)->whereBetween('created_at', [$startDate, $endDate])->get();
-        } else if ($startDate && $endDate && $startDate < $endDate) {
-            // get all students between startDate and endDate
-            $students = $model->whereBetween('created_at', [$startDate, $endDate])->get();
-        } else if ($course) {
-            $students = $model->where('course', $course)->get();
-        } else {
-            $students = $model->all();
-        }
-        $searchResult = $students;
-
-        return $searchResult;
-    }
-
-    public static function createSearchQuery($query)
-    {
-        $startDateKey = Constants::SEARCH_PARAM_START_DATE;
-        $endDateKey   = Constants::SEARCH_PARAM_END_DATE;
-        $courseKey    = StudentConstants::STUDENT_COURSE;
-
-        // switch case 
-        switch ($query) {
-                // if query contains startDateKey and endDateKey and courseKey
-            case (isset($query[$startDateKey]) && isset($query[$endDateKey]) && isset($query[$courseKey])):
-                $query->where($courseKey, $query[$courseKey])->whereBetween('created_at', [$query[$startDateKey], $query[$endDateKey]]);
-                break;
-        }
-
-        if (isset($query[$startDateKey]) && isset($query[$endDateKey])) {
-            $query->whereBetween('created_at', [$query[$startDateKey], $query[$endDateKey]]);
-        }
-        return $query;
-    }
-
     public static function getSearchParams($request)
     {
         $params = [
@@ -119,86 +74,6 @@ class APIHelper
         return $requestData;
     }
 
-    public static function getOldValues($student, $requestData)
-    {
-        foreach ($requestData as $key => $value) {
-            if ($value !== null) {
-                $oldValues[$key] = $student->{$key};
-            }
-        }
-        return $oldValues;
-    }
-
-    public static function createResponseHead($status = true, $message = "Success", $status_code = self::HTTP_CODE_SUCCESS)
-    {
-        $response = [
-            Constants::RESPONSE_STATUS_KEY      => $status,
-            Constants::RESPONSE_MESSAGE_KEY     => $message,
-            Constants::RESPONSE_STATUS_CODE_KEY => $status_code,
-        ];
-        return $response;
-    }
-
-    public static function createResponseData($data)
-    {
-        $formattedData  = self::formatDates($data);
-        $responseData   = $formattedData;
-        return $responseData;
-    }
-
-    public static function createPaginatedResponseData($query, $request)
-    {
-
-        $limit = $request->limit;
-        $page = $request->page;
-        $total = $query->count();
-
-        $responseData = $query->limit($limit)->offset(($page - 1) * $limit)->get();
-
-        $responseData = [$responseData, $total, $page, $limit];
-        // $paginatedResponseData = self::createPaginatedResponse($responseData, $total, $page, $limit);
-        // return $paginatedResponseData;
-        return $responseData;
-    }
-
-    // public static function createPaginatedResponseData($query, $request)
-    // {
-    //     $limit = $request->limit;
-    //     $page = $request->page;
-    //     $total = $query->count();
-
-    //     // USE IF CONDITIONS TO CHECK LIMIT AND PAGE
-    //     //
-    //     // If conditions
-    //     //
-    //     // END IF CONDITIONS
-
-    //     $responseData = $query->limit($limit)->offset(($page - 1) * $limit)->get();
-    //     // $responseData = $query->limit($limit)->offset(($page - 1) * $limit);
-
-    //     $responseData = $responseData->map(function ($student) {
-    //         $student->created_at = Carbon::parse($student->created_at)->format('Y-m-d H:i:s');
-    //         $student->updated_at = Carbon::parse($student->updated_at)->format('Y-m-d H:i:s');
-    //         return $student;
-    //     });
-
-    //     // $paginatedResponseData = self::createPaginatedResponse($responseData, $total, $page, $limit);
-    //     // return $paginatedResponseData;
-    //     return $responseData;
-    // }
-
-    // public static function getPaginatedData($query, $request)
-    // {
-    //     // does not work because data is a collection here
-    //     $limit = $request->has('limit') ? $request->limit : Constants::DEFAULT_LIMIT;
-    //     $page = $request->has('page') ? $request->page : Constants::DEFAULT_PAGE;
-    //     $total = $query->count();
-
-    //     $responseData = $query->limit($limit)->offset(($page - 1) * $limit);
-    //     $paginatedResponse = self::createPaginatedResponse($responseData, $total, $page, $limit);
-    //     return $paginatedResponse;
-    // }
-
     public static function createPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
     {
         $paginatedResponse = [
@@ -210,25 +85,22 @@ class APIHelper
         return $paginatedResponse;
     }
 
-    public static function getPaginationParams($request)
+    public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s')
     {
-        $page       = $request->page ?? 1;
-        $limit      = $request->limit ?? 3;
-        $offset     = ($page - 1) * $limit;
-        $requestParams = [
-            Constants::RESPONSE_PAGE_KEY   => $page,
-            Constants::RESPONSE_LIMIT_KEY  => $limit,
-            Constants::PAGINATION_OFFSET   => $offset,
-        ];
-        return $requestParams;
+        foreach ($data as $key => $value) {
+            $data[$key]['created_at'] = Carbon::parse($value['created_at'])->format($dateFormat);
+            $data[$key]['updated_at'] = Carbon::parse($value['updated_at'])->format($dateFormat);
+        }
+        return $data;
     }
 
+    // REF: MFAISAA-BFF\app\Helpers\APIHelper.php
     public static function validateRequest($schema, $request, $type = 'insert')
     {
         // Get schema keys into a array (for validation)
         $schema_keys = array_keys($schema);
 
-        // If the request is not and create, $request will take passed data
+        // If the request is not create, $request will take passed data
         $input = $request;
         // Only get full request object when creating
         // Ignore when doing the update
@@ -237,7 +109,6 @@ class APIHelper
             $input = $request->only($schema_keys);
         }
 
-        // // Validate data fields against schema to check if they are valid
         $validator = Validator::make($input, $schema);
 
         if ($validator->fails()) {
@@ -253,33 +124,6 @@ class APIHelper
         }
         return ['errors' => false, 'data' => $input];
     }
-
-    public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s')
-    {
-        // $data = json_decode(json_encode($data), true);
-
-        foreach ($data as $key => $value) {
-            $data[$key]['created_at'] = Carbon::parse($value['created_at'])->format($dateFormat);
-            $data[$key]['updated_at'] = Carbon::parse($value['updated_at'])->format($dateFormat);
-        }
-
-        return $data;
-    }
-
-    // 
-    // public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s', $datesToFormat = ['created_at', 'updated_at'])
-    // {
-    //     // Cannot use object of type array fix
-    //     $data = json_decode(json_encode($data), true);
-
-    //     foreach ($data as $key => $value) {
-    //         foreach ($datesToFormat as $date) {
-    //             // $data[$key]['created_at'] = 'test';
-    //             $data[$key][$date] = Carbon::parse($value[$date])->format($dateFormat);
-    //         }
-    //     }
-    //     return $data;
-    // }
 
     public static function makeAPIResponse($status = true, $message = "success", $data = [], $status_code = self::HTTP_CODE_SUCCESS)
     {

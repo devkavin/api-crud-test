@@ -20,7 +20,8 @@ return [
             'name'       => 'nullable',
             'email'      => 'nullable|email|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', // email + @ + domain + TLD (Top Level Domain)
             'phone'      => 'nullable|numeric|regex:/^0[0-9]{9,11}$/',
-            'age'        => 'nullable|numeric|digits_between:1,3'
+            'age'        => 'nullable|numeric|digits_between:1,3',
+            'course'     => 'nullable|in:CS SE,CE,ME,MECH'
         ],
     ],
 
