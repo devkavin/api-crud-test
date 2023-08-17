@@ -9,5 +9,10 @@ class Student extends Model
 {
     // used to create new instances of a model from a factory
     use HasFactory;
-    protected $fillable = ['name', 'email', 'phone', 'age'];
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'age',
+    ];
 }
