@@ -143,29 +143,49 @@ class APIHelper
     {
         $formattedData  = self::formatDates($data);
         $responseData   = $formattedData;
-        // $responseData  = [
-        //     Constants::RESPONSE_DATA_KEY => $formattedData,
-        // ];
         return $responseData;
     }
 
-
     public static function createPaginatedResponseData($query, $request)
     {
+
         $limit = $request->limit;
         $page = $request->page;
         $total = $query->count();
 
-        // USE IF CONDITIONS TO CHECK LIMIT AND PAGE
-        //
-        // If conditions
-        //
-        // END IF CONDITIONS
-
         $responseData = $query->limit($limit)->offset(($page - 1) * $limit)->get();
-        $paginatedResponseData = self::createPaginatedResponse($responseData, $total, $page, $limit);
-        return $paginatedResponseData;
+
+        $responseData = [$responseData, $total, $page, $limit];
+        // $paginatedResponseData = self::createPaginatedResponse($responseData, $total, $page, $limit);
+        // return $paginatedResponseData;
+        return $responseData;
     }
+
+    // public static function createPaginatedResponseData($query, $request)
+    // {
+    //     $limit = $request->limit;
+    //     $page = $request->page;
+    //     $total = $query->count();
+
+    //     // USE IF CONDITIONS TO CHECK LIMIT AND PAGE
+    //     //
+    //     // If conditions
+    //     //
+    //     // END IF CONDITIONS
+
+    //     $responseData = $query->limit($limit)->offset(($page - 1) * $limit)->get();
+    //     // $responseData = $query->limit($limit)->offset(($page - 1) * $limit);
+
+    //     $responseData = $responseData->map(function ($student) {
+    //         $student->created_at = Carbon::parse($student->created_at)->format('Y-m-d H:i:s');
+    //         $student->updated_at = Carbon::parse($student->updated_at)->format('Y-m-d H:i:s');
+    //         return $student;
+    //     });
+
+    //     // $paginatedResponseData = self::createPaginatedResponse($responseData, $total, $page, $limit);
+    //     // return $paginatedResponseData;
+    //     return $responseData;
+    // }
 
     // public static function getPaginatedData($query, $request)
     // {
@@ -181,9 +201,8 @@ class APIHelper
 
     public static function createPaginatedResponse($data = null, $total = null, $page = null, $limit = null)
     {
-        $formattedData = self::formatDates($data);
         $paginatedResponse = [
-            Constants::RESPONSE_DATA_KEY     => $formattedData,
+            Constants::RESPONSE_DATA_KEY     => $data,
             Constants::RESPONSE_TOTAL_KEY    => $total,
             Constants::RESPONSE_PAGE_KEY     => $page,
             Constants::RESPONSE_LIMIT_KEY    => $limit,
@@ -235,31 +254,43 @@ class APIHelper
         return ['errors' => false, 'data' => $input];
     }
 
-    public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s', $datesToFormat = ['created_at', 'updated_at'])
+    public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s')
     {
-        // Cannot use object of type array fix
-        $data = json_decode(json_encode($data), true);
-        // Trying to access array offset on value of type int fix
+        // $data = json_decode(json_encode($data), true);
 
         foreach ($data as $key => $value) {
-            foreach ($datesToFormat as $date) {
-                // $data[$key]['created_at'] = 'test';
-                $data[$key][$date] = Carbon::parse($value[$date])->format($dateFormat);
-            }
+            $data[$key]['created_at'] = Carbon::parse($value['created_at'])->format($dateFormat);
+            $data[$key]['updated_at'] = Carbon::parse($value['updated_at'])->format($dateFormat);
         }
+
         return $data;
     }
 
-    public static function makeAPIResponse($status = true, $message = "success", $data = null, $status_code = self::HTTP_CODE_SUCCESS, $changes = null)
-    {
-        $response = self::createResponseHead($status, $message, $status_code);
+    // 
+    // public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s', $datesToFormat = ['created_at', 'updated_at'])
+    // {
+    //     // Cannot use object of type array fix
+    //     $data = json_decode(json_encode($data), true);
 
-        if ($data != null || is_array($data)) {
-            $response["data"] = $data;
-        }
-        if ($changes != null || is_array($changes)) {
-            $response["changes"] = $changes;
-        }
+    //     foreach ($data as $key => $value) {
+    //         foreach ($datesToFormat as $date) {
+    //             // $data[$key]['created_at'] = 'test';
+    //             $data[$key][$date] = Carbon::parse($value[$date])->format($dateFormat);
+    //         }
+    //     }
+    //     return $data;
+    // }
+
+    public static function makeAPIResponse($status = true, $message = "success", $data = [], $status_code = self::HTTP_CODE_SUCCESS)
+    {
+        // $response = self::createResponseHead($status, $message, $status_code);
+        $response = [
+            Constants::RESPONSE_STATUS_KEY      => $status,
+            Constants::RESPONSE_MESSAGE_KEY     => $message,
+            Constants::RESPONSE_STATUS_CODE_KEY => $status_code,
+        ];
+
+        $response["data"] = $data;
 
         return response()->json($response, $status_code);
     }
