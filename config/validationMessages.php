@@ -61,4 +61,11 @@ return [
         "age"                  => "Invalid age",
 
     ],
+
+    "image"     => [
+        "required"             => "Image is required",
+        "invalid"              => "Invalid image",
+        "extension"            => "Invalid image extension",
+        "size"                 => "Image size is too large",
+    ],
 ];

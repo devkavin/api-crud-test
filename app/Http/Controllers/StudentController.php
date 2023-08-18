@@ -4,39 +4,71 @@ namespace App\Http\Controllers;
 
 use App\Constants\StudentConstants;
 use App\Constants\Constants;
+use App\Helpers\ImageHelper;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Helpers\APIHelper;
 
-
 class StudentController extends Controller
 {
     // test get function
-    public function test()
+    public function test($id)
     {
-        return APIHelper::makeAPIResponse(true, config('validationMessages.test_response'), [], config('statusCodes.HTTP_CODE_SUCCESS'));
+        $model = Student::findOrFail(2);
+        $imageUrl = public_path() . $model->image_url;
+        return $imageUrl;
     }
 
+    // public function postImage(Request $request)
+    // {
+    //     $student            = Student::findOrFail($request->id);
+    //     $imageFile          = $request->file('image');
+    //     // ask dhanuka ayya about the file name format
+    //     // for the time being, current timestamp is used with time()
+    //     $imageFilename      = time() . '.' . $student->name . $imageFile->extension();
+    //     $imageFile->move(public_path('images'), $imageFilename);
+
+    //     $student->image_url = '/images/' . $imageFilename;
+    //     $student->save();
+    //     return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
+    // }
+
+
+    // documentation
     public function postImage(Request $request)
     {
-        $imageFile          = $request->file('image');
-        // ask dhanuka ayya about the file name format
-        // for the time being, current timestamp is used with time()
-        $imageFilename      = time() . '.' . $imageFile->extension();
-        $imageFile->move(public_path('images'), $imageFilename);
+        $student = Student::findOrFail($request->id);
+        $imageHelper = new ImageHelper();
+        // LAST EDIT HERE
+        // NEXT ADD DELETE VALIDATION
+        // VALIDATION IF IMAGE ALREADY EXISTS IN THE DATABASE FOR THE STUDENT
+        // validate the request using the validateRequest function in ImageHelper
+        $validation_schema  = config('validationSchemas.image');
+        $validator = ImageHelper::validateRequest($validation_schema, $request);
+        if ($validator['errors']) {
+            return APIHelper::makeAPIResponse(false, $validator['error_messages'], [], APIHelper::HTTP_CODE_BAD_REQUEST);
+        }
+        if ($student->image_url) {
+            $student = $imageHelper->deleteImage($student);
+        }
+        $student = $imageHelper->postImage($request, $student);
+        // return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student->image_url, APIHelper::HTTP_CODE_SUCCESS);
+        return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
+    }
 
+    public function deleteImage(Request $request)
+    {
         $student            = Student::findOrFail($request->id);
-        $student->image_url = '/images/' . $imageFilename;
-        $student->save();
+        $imageHelper        = new ImageHelper();
+        $student            = $imageHelper->deleteImage($student);
         return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
     }
 
     public function index(Request $request)
     {
         $query = Student::query();
-        // TODO: Create a function to handle the search
         // if the request has a search parameter
         if ($request->has('search')) {
             $search = $request->search;

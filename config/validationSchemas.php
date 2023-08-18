@@ -1,6 +1,10 @@
 <?php
 
 return [
+    "image" => [
+        // file should be an image in jpeg, png, jpg, gif, svg format and less than 5MB
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+    ],
     'student' => [
         'index' => [
             'startDate'  => 'nullable|date',

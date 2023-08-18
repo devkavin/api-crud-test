@@ -39,6 +39,8 @@ Route::get('student/search/{name}', [StudentController::class, 'search']);
 
 // image upload
 Route::post('student/{id}/image', [StudentController::class, 'postImage']);
+// image delete
+Route::delete('student/{id}/image', [StudentController::class, 'deleteImage']);
 
 /**
  * Teacher Routes
