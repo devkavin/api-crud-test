@@ -11,6 +11,8 @@ return [
         "update"               => "Data updated successfully",
         "delete"               => "Data deleted successfully",
         "action"               => "Action completed successfully",
+        "restore"              => "Data restored successfully",
+        "force_delete"         => "Data deleted permanently",
     ],
 
     "failed"    => [
@@ -18,6 +20,8 @@ return [
         "store"                => "Data failed to store",
         "update"               => "Data failed to update",
         "action"               => "Action failed",
+        "restore"              => "Data failed to restore",
+        "force_delete"         => "Data failed to delete permanently",
     ],
 
     "invalid"   => [

@@ -17,8 +17,9 @@ class StudentController extends Controller
     // test get function
     public function test(Request $request)
     {
-        // return students id
-        return $request->all();
+        // return trashed students
+        $students = Student::onlyTrashed()->get();
+        return $students;
     }
 
     // public function postImage(Request $request)
@@ -40,7 +41,6 @@ class StudentController extends Controller
     public function postImage(Request $request)
     {
         $student = Student::findOrFail($request->id);
-        // LAST EDIT HERE
         // NEXT ADD DELETE VALIDATION
         // VALIDATION IF IMAGE ALREADY EXISTS IN THE DATABASE FOR THE STUDENT
         // validate the request using the validateRequest function in ImageHelper
@@ -53,10 +53,10 @@ class StudentController extends Controller
         // $student = ImageHelper::createImageUrl($request, "Test");
         $image_url = ImageHelper::createImageUrl($request, $student->name);
         $student->image_url = $image_url;
-        $student = ImageHelper::saveImage($student, $image_url);
+        $student->save();
 
         // return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student->image_url, APIHelper::HTTP_CODE_SUCCESS);
-        return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
+        return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), [], APIHelper::HTTP_CODE_SUCCESS);
     }
 
     public function deleteImage(Request $request)
@@ -106,7 +106,6 @@ class StudentController extends Controller
     // to store data
     public function store(Request $request)
     {
-        return $request;
         $apiHelper          = new APIHelper();
         $validation_schema  = config('validationSchemas.student.store');
 
@@ -131,9 +130,9 @@ class StudentController extends Controller
             $image_url                = ImageHelper::createImageUrl(request(), $request->name);
             $requestData['image_url'] = $image_url;
             $student                  = $student->create($requestData);
-            $student                  = $student->toArray();
+            // $student                  = $student->toArray();
 
-            return APIHelper::makeAPIResponse(true, config('validationMessages.success.store'), $student, APIHelper::HTTP_CODE_SUCCESS);
+            return APIHelper::makeAPIResponse(true, config('validationMessages.success.store'), [], APIHelper::HTTP_CODE_SUCCESS);
         } catch (Exception $e) {
             return APIHelper::makeAPIResponse(false, $e->getMessage(), [], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
@@ -153,14 +152,11 @@ class StudentController extends Controller
 
         try {
             $student = Student::where('email', $request->email)->first();
-            // if ($student) {
-            //     throw new Exception(config('validationMessages.exist.update'));
-            // }
 
             // if the student is not found
-            // if (!$student) {
-            //     throw new Exception(config('validationMessages.not_found.update'));
-            // }
+            if (!$student) {
+                throw new Exception(config('validationMessages.not_found.update'));
+            }
             // update the student data
             $requestData              = $apiHelper->getUpdateStudentData($request);
             $image_url                = ImageHelper::createImageUrl(request(), $request->name);
@@ -172,15 +168,41 @@ class StudentController extends Controller
         }
     }
     // to delete data
-    public function destroy($id)
+    public function delete($id)
     {
-        $student = Student::find($id);
-        if ($student) {
+        $student = Student::findorfail($id);
+        if (!$student->trashed()) {
             $student->delete();
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.delete'), [], APIHelper::HTTP_CODE_SUCCESS);
         } else {
-            // if the id is not found
             return APIHelper::makeAPIResponse(false, config('validationMessages.failed.delete'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
+            // if the id is not found
+        }
+    }
+
+    // to restore data
+    public function restore($id)
+    {
+        $student = Student::onlyTrashed()->findorfail($id);
+        if ($student) {
+            $student->restore();
+            return APIHelper::makeAPIResponse(true, config('validationMessages.success.restore'), [], APIHelper::HTTP_CODE_SUCCESS);
+        } else {
+            // if the id is not found
+            return APIHelper::makeAPIResponse(false, config('validationMessages.failed.restore'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
+        }
+    }
+
+    // to force delete data
+    public function forceDelete($id)
+    {
+        $student = Student::onlyTrashed()->findorfail($id);
+        if ($student) {
+            $student->forceDelete();
+            return APIHelper::makeAPIResponse(true, config('validationMessages.success.force_delete'), [], APIHelper::HTTP_CODE_SUCCESS);
+        } else {
+            // if the id is not found
+            return APIHelper::makeAPIResponse(false, config('validationMessages.failed.force_delete'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
 }

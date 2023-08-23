@@ -35,7 +35,11 @@ Route::put('student/update', [StudentController::class, 'update']);
 // changed to post because form-data is used
 Route::post('student/update', [StudentController::class, 'update']);
 // to delete data
-Route::delete('student/delete/{id}', [StudentController::class, 'destroy']);
+Route::delete('student/delete/{id}', [StudentController::class, 'delete']);
+// to restore data
+Route::put('student/restore/{id}', [StudentController::class, 'restore']);
+// to force delete data
+Route::delete('student/force-delete/{id}', [StudentController::class, 'forceDelete']);
 // to search data by name or phone
 Route::get('student/search/{name}', [StudentController::class, 'search']);
 
