@@ -70,11 +70,9 @@ class ImageHelper
         // for the time being, model name and current timestamp is used with time()
         $imageFilename = $UrlPrefix . '_' . time() . '.' . $imageFile->extension();
         // save the image to storage
-        Storage::putFileAs('images/', $imageFile, $imageFilename);
+        Storage::putFileAs('public/images/', $imageFile, $imageFilename);
         // $imageFile->move(public_path('images'), $imageFilename);
-        $image_url = '/images/' . $imageFilename;
-
-
+        $image_url = '/storage/images/' . $imageFilename;
         return $image_url;
     }
 

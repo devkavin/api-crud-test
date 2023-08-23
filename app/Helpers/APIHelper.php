@@ -70,7 +70,7 @@ class APIHelper
             Constants::COMMON_PHONE,
             Constants::COMMON_AGE,
             StudentConstants::STUDENT_COURSE,
-            Constants::COMMON_IMAGE,
+            Constants::COMMON_UPDATED_AT,
         ]);
         return $requestData;
     }

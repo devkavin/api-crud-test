@@ -17,15 +17,17 @@ return [
             'phone'      => 'required|numeric|regex:/^0[0-9]{9,11}$/',
             'age'        => 'required|numeric|digits_between:1,3',
             // course must be one of CS SE, CE, ME, MECH
-            'course'     => 'required|in:CS SE,CE,ME,MECH'
+            'course'     => 'required|in:CS SE,CE,ME,MECH',
+            'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ],
         'update' => [
             //not required because it is not required to be changed
             'name'       => 'nullable',
-            'email'      => 'nullable|email|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', // email + @ + domain + TLD (Top Level Domain)
+            'email'      => 'required|email|regex:/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', // email + @ + domain + TLD (Top Level Domain)
             'phone'      => 'nullable|numeric|regex:/^0[0-9]{9,11}$/',
             'age'        => 'nullable|numeric|digits_between:1,3',
-            'course'     => 'nullable|in:CS SE,CE,ME,MECH'
+            'course'     => 'nullable|in:CS SE,CE,ME,MECH',
+            'image'      => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ],
     ],
 

@@ -69,6 +69,6 @@ return [
     'links' => [
         public_path('storage') => storage_path('app/public'),
         // added to store images in public folder under storage folder
-        public_path('images') => storage_path('app/images'),
+        public_path('images') => storage_path('app/public/images'),
     ],
 ];

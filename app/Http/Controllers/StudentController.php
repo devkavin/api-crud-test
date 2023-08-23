@@ -17,29 +17,8 @@ class StudentController extends Controller
     // test get function
     public function test(Request $request)
     {
-        $id = $request->id;
-        // // check if the student has an image
-        $student = Student::findOrFail($id);
-        // if image is null, return false
-        if ($student->image_url == null) {
-            return APIHelper::makeAPIResponse(false, config('validationMessages.error.no_image'), null, APIHelper::HTTP_CODE_BAD_REQUEST);
-        } else {
-            // $imageHelper        = new ImageHelper();
-            // $student            = $imageHelper->deleteImage($student);
-            // return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
-            // get path to storage
-            // $path = public_path('images');
-            // $path = public_path() . $student->image_url;
-            // path to storage
-
-            // LAST EDIT HERE
-            // PATH IN POSTMAN THROUGH CLICK NOT WORKING
-
-            $path = Storage::putFile('images/', $request->file('image'));
-
-
-            return $path;
-        }
+        // return students id
+        return $request->all();
     }
 
     // public function postImage(Request $request)
@@ -127,6 +106,7 @@ class StudentController extends Controller
     // to store data
     public function store(Request $request)
     {
+        return $request;
         $apiHelper          = new APIHelper();
         $validation_schema  = config('validationSchemas.student.store');
 
@@ -146,6 +126,7 @@ class StudentController extends Controller
             $student = new Student();
             // create the student data and store it in the database
             $requestData              = $apiHelper->getStoreStudentData($request);
+            // validate image
             // add request data to the student object
             $image_url                = ImageHelper::createImageUrl(request(), $request->name);
             $requestData['image_url'] = $image_url;
@@ -160,28 +141,30 @@ class StudentController extends Controller
 
     // to update data
     // only has to update the data that is changed
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
         $apiHelper          = new APIHelper();
         $validation_schema  = config('validationSchemas.student.update');
-        $validator = APIHelper::validateRequest($validation_schema, $request);
 
+        $validator = APIHelper::validateRequest($validation_schema, $request);
         if ($validator['errors']) {
             return APIHelper::makeAPIResponse(false, $validator['error_messages'], [], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
 
         try {
             $student = Student::where('email', $request->email)->first();
-            if ($student) {
-                throw new Exception(config('validationMessages.exist.update'));
-            }
+            // if ($student) {
+            //     throw new Exception(config('validationMessages.exist.update'));
+            // }
 
-            $student = Student::find($id);
-            if (!$student) {
-                throw new Exception(config('validationMessages.failed.update'));
-            }
-
-            $requestData    = $apiHelper->getUpdateStudentData($request);
+            // if the student is not found
+            // if (!$student) {
+            //     throw new Exception(config('validationMessages.not_found.update'));
+            // }
+            // update the student data
+            $requestData              = $apiHelper->getUpdateStudentData($request);
+            $image_url                = ImageHelper::createImageUrl(request(), $request->name);
+            $requestData['image_url'] = $image_url;
             $student->update($requestData);
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.update'), [], APIHelper::HTTP_CODE_SUCCESS);
         } catch (Exception $e) {

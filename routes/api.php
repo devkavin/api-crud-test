@@ -23,7 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 /**
  * Student Routes
  */
-Route::get('student/test/{id}', [StudentController::class, 'test']);
+Route::get('student/test', [StudentController::class, 'test']);
 // to get all data as paginated
 Route::get('students/{page}/{limit}', [StudentController::class, 'index']);
 // to store data
@@ -31,7 +31,9 @@ Route::post('student/store', [StudentController::class, 'store']);
 // get student by id (no key, just value id)
 Route::get('student/details/{id}', [StudentController::class, 'show']);
 // to update data
-Route::put('student/update/{id}', [StudentController::class, 'update']);
+Route::put('student/update', [StudentController::class, 'update']);
+// changed to post because form-data is used
+Route::post('student/update', [StudentController::class, 'update']);
 // to delete data
 Route::delete('student/delete/{id}', [StudentController::class, 'destroy']);
 // to search data by name or phone
