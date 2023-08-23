@@ -47,6 +47,7 @@ return [
         "department"           => "Department not found",
         "course"               => "Course not found",
         "page"                 => "Page not found",
+        "image"                => "Image not found",
     ],
 
     "exist"     => [
@@ -59,6 +60,7 @@ return [
         "email"                => "Invalid email address",
         "phone"                => "Invalid phone number",
         "age"                  => "Invalid age",
+        'image'                => "Invalid image",
 
     ],
 

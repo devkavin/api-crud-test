@@ -27,7 +27,7 @@ class StudentTest extends TestCase
         // test store function
         $response = $this->post('/api/student/store', [
             'name' => 'Test Student1',
-            'email' => 'test1@gmai.com',
+            'email' => 'test1@gmai.com', // wrong email format
             'phone' => '0123456789',
             'age' => '20'
         ]);

@@ -8,6 +8,7 @@ class Constants
     const COMMON_EMAIL              = 'email';
     const COMMON_PHONE              = 'phone';
     const COMMON_AGE                = 'age';
+    const COMMON_IMAGE              = 'image';
     const COMMON_CREATED_AT         = 'created_at';
     const COMMON_UPDATED_AT         = 'updated_at';
 
