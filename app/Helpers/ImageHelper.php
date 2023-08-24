@@ -32,7 +32,8 @@ class ImageHelper
     public static function deleteImage($model)
     {
         // get the image url from the model
-        $imageUrl = public_path() . $model->image_url;
+        $imageUrl = $model->image_url;
+        // delete the image from storage
 
         // delete the image from public path in root
         // unlink($imageUrl); // this is working

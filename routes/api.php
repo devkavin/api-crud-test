@@ -23,7 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 /**
  * Student Routes
  */
-Route::get('student/test', [StudentController::class, 'test']);
+Route::get('student/test/{id}', [StudentController::class, 'test']);
 // to get all data as paginated
 Route::get('students/{page}/{limit}', [StudentController::class, 'index']);
 // to store data
