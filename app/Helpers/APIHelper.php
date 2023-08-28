@@ -24,20 +24,6 @@ class APIHelper
     const HTTP_CODE_BAD_AUTH_REQUEST = 403;
     const INVALID_DATA               = 422;
 
-
-    // TODO: check what @param are for
-    // @params are used to define the type of the variable
-    /**
-     * @param bool $status
-     * @param bool $paginated
-     * @param string $message
-     * @param int $status_code
-     * @param !null $data
-     * @param int $status_code
-     * @param int $page
-     * @param int $limit
-     */
-
     public static function getSearchParams($request)
     {
         $params = [
@@ -86,6 +72,12 @@ class APIHelper
         return $paginatedResponse;
     }
 
+    // document the function
+    /**
+     * @param $data
+     * @param string $dateFormat (default: Y-m-d H:i:s)
+     * @return mixed
+     */
     public static function formatDates($data, $dateFormat = 'Y-m-d H:i:s')
     {
         $collection = collect($data);
@@ -107,6 +99,13 @@ class APIHelper
     }
 
     // REF: MFAISAA-BFF\app\Helpers\APIHelper.php
+    /**
+     * Validate requests against schema
+     * @param $schema
+     * @param $request
+     * @param string $type (default: insert)
+     * @return array
+     */
     public static function validateRequest($schema, $request, $type = 'insert')
     {
         // Get schema keys into a array (for validation)
@@ -135,6 +134,14 @@ class APIHelper
         ];
     }
 
+    // make ApiResponse
+    /**
+     * @param bool $status
+     * @param string $message (default: success)
+     * @param array $data is the data to be sent in the response (default: [])
+     * @param int $status_code 
+     * @return \Illuminate\Http\JsonResponse
+     */
     public static function makeAPIResponse($status = true, $message = "success", $data = [], $status_code = self::HTTP_CODE_SUCCESS)
     {
         // $response = self::createResponseHead($status, $message, $status_code);

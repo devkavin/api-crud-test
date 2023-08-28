@@ -53,6 +53,11 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
         ],
 
+        // added to store images in the public folder in root.
+        'images' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/images'),
+        ],
     ],
 
     /*
@@ -65,10 +70,7 @@ return [
     | the locations of the links and the values should be their targets.
     |
     */
-
     'links' => [
-        public_path('storage') => storage_path('app/public'),
-        // added to store images in public folder under storage folder
         public_path('images') => storage_path('app/public/images'),
     ],
 ];

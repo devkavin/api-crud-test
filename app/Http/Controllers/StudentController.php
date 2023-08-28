@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Helpers\APIHelper;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 class StudentController extends Controller
@@ -17,16 +18,15 @@ class StudentController extends Controller
     // test get function
     public function test($id)
     {
-        // return trashed students
-        $student = Student::findorfail($id);
-        $path    = Storage::delete($student->image_url);
-        return $path;
+        $student = Student::find($id);
+
+        return $student->image_url;
     }
 
     // documentation
     public function postImage(Request $request)
     {
-        $student = Student::findOrFail($request->id);
+        $student = Student::find($request->id);
         // NEXT ADD DELETE VALIDATION
         // VALIDATION IF IMAGE ALREADY EXISTS IN THE DATABASE FOR THE STUDENT
         // validate the request using the validateRequest function in ImageHelper
@@ -34,6 +34,9 @@ class StudentController extends Controller
         $validator = APIHelper::validateRequest($validation_schema, $request);
         if ($validator['errors']) {
             return APIHelper::makeAPIResponse(false, $validator['error_messages'], [], APIHelper::HTTP_CODE_BAD_REQUEST);
+        }
+        if ($student->image_url) {
+            ImageHelper::deleteImage($student);
         }
 
         // $student = ImageHelper::createImageUrl($request, "Test");
@@ -47,11 +50,20 @@ class StudentController extends Controller
 
     public function deleteImage(Request $request)
     {
-        $student = Student::findOrFail($request->id);
-        $student = ImageHelper::deleteImage($student);
-        return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
+        $student = Student::find($request->id);
+        if ($student->image_url == null) {
+            return APIHelper::makeAPIResponse(false, config('validationMessages.failed.action'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
+        }
+        ImageHelper::deleteImage($student);
+        ImageHelper::updateDatabaseImageUrl($student, null);
+        return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), [], APIHelper::HTTP_CODE_SUCCESS);
     }
 
+    /**
+     * Search data by date and paginate the response
+     * @param Request $request
+     * @return mixed
+     */
     public function index(Request $request)
     {
         $query = Student::query();
@@ -76,7 +88,12 @@ class StudentController extends Controller
         return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $paginatedResponseData, config('statusCodes.HTTP_CODE_SUCCESS'));
     }
 
-    // get student by id
+    /**
+     * Find by id
+     * @param $id
+     * @return mixed
+     * @throws Exception
+     */
     public function show($id)
     {
         $student = Student::find($id);
@@ -87,7 +104,12 @@ class StudentController extends Controller
             return APIHelper::makeAPIResponse(false, config('validationMessages.not_found.retrieve'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
     }
-    // to store data
+
+    /**
+     * Store data
+     * @param Request $request
+     * @return mixed
+     */
     public function store(Request $request)
     {
         $apiHelper          = new APIHelper();
@@ -116,8 +138,12 @@ class StudentController extends Controller
         }
     }
 
-    // to update data
-    // only has to update the data that is changed
+    /**
+     * Update data
+     * TODO: Check image upload and update
+     * @param Request $request
+     * @return mixed
+     */
     public function update(Request $request)
     {
         $apiHelper         = new APIHelper();
@@ -145,16 +171,17 @@ class StudentController extends Controller
         }
     }
 
-    // DELETE, RESTORE, FORCE DELETE functions are not complete
-    // TODO: add ERROR HANDLING
-    // TODO: DELETE image from storage
-
-    // to delete data
+    /**
+     * delete data
+     * @param $id
+     * @return mixed
+     */
     public function delete($id)
     {
         // issue was the findorfail function
         $student = Student::find($id);
         if ($student) {
+            ImageHelper::deleteImage($student);
             $student->delete();
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.delete'), [], APIHelper::HTTP_CODE_SUCCESS);
         } else {
@@ -162,7 +189,11 @@ class StudentController extends Controller
         }
     }
 
-    // to restore data
+    /**
+     * restore data
+     * @param $id
+     * @return mixed
+     */
     public function restore($id)
     {
         $student = Student::onlyTrashed()->find($id);
@@ -175,7 +206,11 @@ class StudentController extends Controller
         }
     }
 
-    // to force delete data
+    /**
+     * force delete data
+     * @param $id
+     * @return mixed
+     */
     public function forceDelete($id)
     {
         $student = Student::onlyTrashed()->find($id);
