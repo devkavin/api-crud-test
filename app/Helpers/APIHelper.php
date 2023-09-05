@@ -120,6 +120,7 @@ class APIHelper
         if ($validator->fails()) {
             $validationMessages     = config('validationMessages.regex');
             $errors                 = $validator->errors()->getMessages();
+
             foreach ($errors as $key => $value) {
                 $errors[$key]   = $validationMessages[$key] ?? $value;
             }

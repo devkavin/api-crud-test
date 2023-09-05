@@ -58,6 +58,11 @@ return [
             'driver' => 'local',
             'root' => storage_path('app/public/images'),
         ],
+
+        'bin' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/bin'),
+        ],
     ],
 
     /*
@@ -72,5 +77,6 @@ return [
     */
     'links' => [
         public_path('images') => storage_path('app/public/images'),
+        public_path('bin') => storage_path('app/public/bin'),
     ],
 ];

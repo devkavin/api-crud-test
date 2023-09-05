@@ -12,10 +12,11 @@ class ImageHelper
     /**
      * Create the image url
      * @param Request $request
-     * @param string $UrlPrefix
+     * @param string $imagePrefix
+     * @param string $subFolder
      * @return string|null
      */
-    public static function createImageUrl(Request $request, $UrlPrefix = 'default')
+    public static function createImageUrl(Request $request, $imagePrefix = 'defaultImagePrefix', $subFolder = 'defaultSubFolder')
     {
         // if image is not in the request, return null
         if (!$request->hasFile('image')) {
@@ -27,10 +28,11 @@ class ImageHelper
         // Storage::setVisibility('public/images/' . $imageFilename, 'public');
         // ask dhanuka ayya about the file name format
         // for the time being, model name and current timestamp is used with time()
-        $imageFileNameWithExtension = $UrlPrefix . '_' . time() . '.' . $imageFile->extension();
+        $imageFileNameWithExtension = $imagePrefix . '_' . time() . '.' . $imageFile->extension();
         // save the image to storage
-        // Storage::putFileAs('public/images/', $imageFile, $imageFilename);
-        Storage::disk('images')->put($imageFileNameWithExtension, File::get($imageFile));
+        // path inside subFolder (images)
+        $path = $subFolder . '/' . $imageFileNameWithExtension;
+        Storage::disk('images')->put($path, File::get($imageFile));
         $image_url = $imageFileNameWithExtension;
         return $image_url;
     }
@@ -40,13 +42,24 @@ class ImageHelper
      * @param $model
      * @return mixed
      */
-    public static function deleteImage($model)
+    public static function deleteImage($model, $subFolder = 'defaultSubFolder')
     {
         // get the image url from the model
         $imageName = $model->image_url;
+
+        $path = $subFolder . '/' . $imageName;
         // Storage::delete($imageUrl);
-        Storage::disk('images')->delete($imageName);
+        Storage::disk('images')->delete($path);
         return $model;
+    }
+
+    public function softDeleteImage($model, $subFolder = 'defaultSubFolder')
+    {
+        // get the image url from the model
+        $imageUrl = $model->image_url;
+        $imagePathInStorage = $subFolder . '/' . $imageUrl;
+        // move the image to the deleted images folder
+        Storage::disk('images')->move($imagePathInStorage, 'deletedImages/' . $imageUrl);
     }
 
     /**

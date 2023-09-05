@@ -18,12 +18,13 @@ class StudentController extends Controller
     // test get function
     public function test($id)
     {
-        $student = Student::find($id);
+        $model = Student::find($id);
 
-        return $student->image_url;
+        return $model;
     }
 
     // documentation
+    //TODO: customRequest >>
     public function postImage(Request $request)
     {
         $student = Student::find($request->id);
@@ -36,7 +37,7 @@ class StudentController extends Controller
             return APIHelper::makeAPIResponse(false, $validator['error_messages'], [], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
         if ($student->image_url) {
-            ImageHelper::deleteImage($student);
+            ImageHelper::deleteImage($student, 'students');
         }
 
         // $student = ImageHelper::createImageUrl($request, "Test");
@@ -54,7 +55,7 @@ class StudentController extends Controller
         if ($student->image_url == null) {
             return APIHelper::makeAPIResponse(false, config('validationMessages.failed.action'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
         }
-        ImageHelper::deleteImage($student);
+        ImageHelper::deleteImage($student, 'students');
         ImageHelper::updateDatabaseImageUrl($student, null);
         return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), [], APIHelper::HTTP_CODE_SUCCESS);
     }
@@ -76,7 +77,7 @@ class StudentController extends Controller
         $page  = $request->page;
         $total = $query->count();
         if ($limit == 0) {
-            return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $query->get(), config('statusCodes.HTTP_CODE_SUCCESS'));
+            return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $query->get(), APIHelper::HTTP_CODE_SUCCESS);
         }
 
         // paginate the response
@@ -98,7 +99,7 @@ class StudentController extends Controller
     {
         $student = Student::find($id);
         if ($student) {
-            $student = APIHelper::formatDates($student, StudentConstants::DATE_TIME_FORMAT);
+            $student = APIHelper::formatDates($student, 'Y-m-d H:i:s');
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.action'), $student, APIHelper::HTTP_CODE_SUCCESS);
         } else {
             return APIHelper::makeAPIResponse(false, config('validationMessages.not_found.retrieve'), [], APIHelper::HTTP_CODE_BAD_REQUEST);
@@ -128,7 +129,7 @@ class StudentController extends Controller
             // student object to add the image url
             $student                  = new Student();
             $requestData              = $apiHelper->getStoreStudentData($request);
-            $image_url                = ImageHelper::createImageUrl(request(), $request->name);
+            $image_url                = ImageHelper::createImageUrl(request(), $request->name, 'students');
             $requestData['image_url'] = $image_url;
             $student                  = $student->create($requestData);
 
@@ -159,9 +160,24 @@ class StudentController extends Controller
             if (!$student) {
                 throw new Exception(config('validationMessages.not_found.update'));
             }
-
-            $requestData              = $apiHelper->getUpdateStudentData($request);
-            $image_url                = ImageHelper::createImageUrl(request(), $request->name);
+            $requestData = $request->only(
+                [
+                    'name',
+                    'email',
+                    'phone',
+                    'age',
+                    'course',
+                ],
+            );
+            if ($student->image_url) {
+                ImageHelper::deleteImage($student, 'students');
+            }
+            if (!$request->name) {
+                $imagePrefix = $student->name;
+            } else {
+                $imagePrefix = $request->name;
+            }
+            $image_url                = ImageHelper::createImageUrl(request(), $imagePrefix, 'students');
             $requestData['image_url'] = $image_url;
             $student->update($requestData);
 
@@ -181,7 +197,7 @@ class StudentController extends Controller
         // issue was the findorfail function
         $student = Student::find($id);
         if ($student) {
-            ImageHelper::deleteImage($student);
+            ImageHelper::deleteImage($student, 'students');
             $student->delete();
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.delete'), [], APIHelper::HTTP_CODE_SUCCESS);
         } else {
@@ -215,7 +231,7 @@ class StudentController extends Controller
     {
         $student = Student::onlyTrashed()->find($id);
         if ($student) {
-            ImageHelper::deleteImage($student);
+            ImageHelper::deleteImage($student, 'students');
             $student->forceDelete();
             // delete the image from the storage
             return APIHelper::makeAPIResponse(true, config('validationMessages.success.force_delete'), [], APIHelper::HTTP_CODE_SUCCESS);
